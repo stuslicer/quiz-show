@@ -14,7 +14,10 @@ java {
 }
 
 tasks.withType<JavaCompile> {
-    options.compilerArgs.addAll(listOf("-source", "21", "-target", "21", "--enable-preview"))
+    options.compilerArgs.addAll(listOf(
+        "-source", "21",
+        "-target", "21",
+        "--enable-preview"))
 }
 
 configurations {
