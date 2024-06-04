@@ -70,7 +70,7 @@ public class FileBasedQuizRepository implements QuizRepository {
         Optional<Quiz> loadedQuiz = loadById(id);
 
         if( loadedQuiz.isPresent() ) {
-            File file = new File(this.baseDirectory, generateQuizFileName(quiz));
+            File file = new File(this.baseDirectory, generateQuizFileName(loadedQuiz.get()));
             return file.delete();
         }
         return false;
