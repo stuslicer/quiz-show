@@ -6,10 +6,6 @@ import org.example.quizshow.model.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class OpenAiQuizGeneratorTest {
 
     private OpenAiQuizGenerator openAiQuizGenerator;
@@ -25,7 +21,7 @@ class OpenAiQuizGeneratorTest {
     void loadJsonQuiz() {
         String quizJson = FileUtils.readFileAsString("src/test/resources/quiz-json-001.json");
 
-        AiQuizRecords.AiQuiz aiQuiz = openAiQuizGenerator.loadJsonQuiz(quizJson);
+        AiQuizRecords.AiQuiz aiQuiz = openAiQuizGenerator.convertJsonToQuiz(quizJson);
         System.out.println(aiQuiz);
     }
 }

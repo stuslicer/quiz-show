@@ -6,16 +6,15 @@ import lombok.extern.log4j.Log4j2;
 import org.example.quizshow.generator.QuizGenerator;
 import org.example.quizshow.generator.QuizGeneratorConfig;
 import org.example.quizshow.generator.openai.model.AiModels;
-import org.example.quizshow.generator.openai.model.AiQuizRecords;
 import org.example.quizshow.generator.openai.model.OpenAIRecords.*;
 import org.example.quizshow.generator.openai.model.Role;
 import org.example.quizshow.model.Quiz;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
-import static org.example.quizshow.generator.openai.model.AiQuizRecords.*;
+import static org.example.quizshow.generator.openai.model.AiQuizRecords.AiQuiz;
 
 @Log4j2
 @Component
@@ -48,47 +47,52 @@ public class OpenAiQuizGenerator implements QuizGenerator {
             \"""
             """;
 
-    @Autowired
     private OpenAiInterface openAiInterface;
-    @Autowired
     private OpenAiService openAiService;
-    @Autowired
+    private AiQuizTransformer aiQuizTransformer = new AiQuizTransformer();
     private ObjectMapper objectMapper;
+
+    public OpenAiQuizGenerator(OpenAiInterface openAiInterface, OpenAiService openAiService, AiQuizTransformer aiQuizTransformer, ObjectMapper objectMapper) {
+        this.openAiInterface = openAiInterface;
+        this.openAiService = openAiService;
+        this.aiQuizTransformer = aiQuizTransformer;
+        this.objectMapper = objectMapper;
+    }
 
     private JsonQuizExtractor jsonQuizExtractor = new JsonQuizExtractor();
 
     @Override
     public Quiz generateQuiz(QuizGeneratorConfig config) {
 
-        // ask initial setup question
+        AiQuiz aiQuiz = generateAiQuiz(config);
 
-        // pass in the question
+        Quiz quiz = aiQuizTransformer.transform(aiQuiz);
 
-        // get result
+        return populateNewQuiz(config, quiz);
+    }
 
-        Message simpleHello = new Message(Role.USER, "Hello, how are you today?");
+    private AiQuiz generateAiQuiz(QuizGeneratorConfig config) {
+
         Message initialPrompt = new Message(Role.USER, QUIZ_SETUP_PROMPT);
         Message quizSubject = new Message(Role.USER, "6 questions on records in Java 17");
 
         String response = openAiService.sendRequest(List.of(initialPrompt, quizSubject), AiModels.GPT_4_TURBO, 0.7);
 
-        // extract JSON
-
-        System.out.println(response);
-
-        return null;
+        return convertJsonToQuiz(jsonQuizExtractor.extractJsonForAiQuiz(response));
     }
 
-    public AiQuiz loadJsonQuiz(String jsonQuiz) {
+    private Quiz populateNewQuiz(QuizGeneratorConfig config, Quiz quiz) {
+        quiz.setId(UUID.randomUUID().toString());
+        quiz.setName( config.prompt() );
+        quiz.setDescription( config.prompt() );
+        return quiz;
+    }
+
+    private AiQuiz convertJsonToQuiz(String jsonQuiz) {
         try {
-            AiQuiz aiQuiz = objectMapper.readValue(jsonQuiz, AiQuiz.class);
-            return aiQuiz;
+            return objectMapper.readValue(jsonQuiz, AiQuiz.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 }

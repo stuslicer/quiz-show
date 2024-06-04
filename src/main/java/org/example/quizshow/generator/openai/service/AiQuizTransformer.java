@@ -14,7 +14,7 @@ import static org.example.quizshow.generator.openai.model.AiQuizRecords.AiQuiz.*
 import static org.example.quizshow.model.Question.*;
 
 /**
- * Transforms a AiQuiz object to the Quiz object.
+ * Transforms a {@link AiQuiz} object to the {@link Quiz} object.
  */
 @Component
 public class AiQuizTransformer {
