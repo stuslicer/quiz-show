@@ -31,7 +31,7 @@ public class FileBasedQuizRepository implements QuizRepository {
     @Override
     public Optional<Quiz> loadById(String id) {
         Assert.notNull(id, "Quiz id must be set.");
-        File file = new File(this.baseDirectory, generateQuizFileName(quiz));
+        File file = new File(this.baseDirectory, generateQuizFileName(id));
         try {
             Quiz loadedQuiz = objectMapper.readValue(file, Quiz.class);
             return Optional.of(loadedQuiz);
@@ -39,7 +39,6 @@ public class FileBasedQuizRepository implements QuizRepository {
             log.error("Failed to load quiz from file: {}", file.getAbsolutePath(), e);
             return Optional.empty();
         }
-        return Optional.empty();
     }
 
     @Override
@@ -76,7 +75,23 @@ public class FileBasedQuizRepository implements QuizRepository {
         return false;
     }
 
+    /**
+     * Generates a file name for a quiz based on the quiz ID.
+     *
+     * @param quiz the quiz
+     * @return the generated file name in the format "quiz-{quizId}.json"
+     */
     private String generateQuizFileName(Quiz quiz) {
-        return "quiz-%s.json".formatted(quiz.getId().toLowerCase());
+        return generateQuizFileName(quiz.getId());
+    }
+
+    /**
+     * Generates a file name for a quiz based on the quiz ID.
+     *
+     * @param quizId the ID of the quiz
+     * @return the generated file name in the format "quiz-{quizId}.json"
+     */
+    private String generateQuizFileName(String quizId) {
+        return "quiz-%s.json".formatted(quizId.toLowerCase());
     }
 }
