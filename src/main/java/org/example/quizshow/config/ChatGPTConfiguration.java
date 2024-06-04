@@ -1,6 +1,6 @@
 package org.example.quizshow.config;
 
-import org.example.quizshow.generator.OpenAiInterface;
+import org.example.quizshow.generator.openai.service.OpenAiInterface;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

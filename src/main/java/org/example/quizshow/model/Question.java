@@ -18,7 +18,6 @@ public record Question(
         List<QuestionOption> options
 ) {
     public record QuestionOption(
-        int sequence,
         String text,
         boolean isCorrect,
         String explanation

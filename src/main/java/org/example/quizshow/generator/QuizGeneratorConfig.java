@@ -10,4 +10,11 @@ public record QuizGeneratorConfig(
         int numberOfQuestions,
         QuizDifficulty difficulty
 ) {
+
+    public QuizGeneratorConfig(String prompt, int numberOfQuestions) {
+        this(prompt, numberOfQuestions, QuizDifficulty.medium);
+    }
+    public QuizGeneratorConfig(String prompt) {
+        this(prompt, 10, QuizDifficulty.medium);
+    }
 }

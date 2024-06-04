@@ -1,4 +1,4 @@
-package org.example.quizshow.generator;
+package org.example.quizshow.generator.openai.service;
 
 import org.example.quizshow.generator.openai.model.OpenAIRecords.ChatResponse;
 import org.example.quizshow.generator.openai.model.OpenAIRecords.ChatRequest;
