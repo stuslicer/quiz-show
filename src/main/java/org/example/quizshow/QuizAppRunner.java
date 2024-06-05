@@ -28,11 +28,11 @@ public class QuizAppRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        openAiInterface.listModels().data()
-                .stream()
-                .filter(i -> i.id().startsWith("gpt-"))
-                .sorted(Comparator.comparing(OpenAIRecords.ModelList.Model::id))
-                .forEach(System.out::println);
+//        openAiInterface.listModels().data()
+//                .stream()
+//                .filter(i -> i.id().startsWith("gpt-"))
+//                .sorted(Comparator.comparing(OpenAIRecords.ModelList.Model::id))
+//                .forEach(System.out::println);
 
 //        Quiz quiz = quizService.generateNewQuiz("pattern matching with instanceof", 5);
 
