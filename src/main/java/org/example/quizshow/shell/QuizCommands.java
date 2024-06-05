@@ -51,6 +51,26 @@ public class QuizCommands {
         ctx.getTerminal().writer().flush();
     }
 
+    @Command(description = "Generate a new quiz")
+    public void generateQuiz(
+            CommandContext ctx,
+            @Option(longNames = "prompt",
+                    shortNames = 'p',
+                    description = "Prompt for generating the quiz, the subject of the quiz",
+                    required = true) String prompt,
+            @Option(longNames = "numQuestions",
+                    shortNames = 'n',
+                    description = "Number of questions for the quiz",
+                    defaultValue = "10"
+            ) int numOfQuestions) {
+
+        ctx.getTerminal().writer().println("Generating quiz... this may take a while");
+
+        quizService.generateNewQuiz(prompt, numOfQuestions);
+
+        ctx.getTerminal().writer().println("Quiz generated!");
+    }
+
     private static String withColour(String input, int styleColor) {
         AttributedStringBuilder aob = new AttributedStringBuilder();
         aob.append(input, AttributedStyle.DEFAULT.foreground(styleColor));
