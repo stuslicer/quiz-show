@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 @Service
 public class FileBasedQuizRepository implements QuizRepository {
 
+    private static final String QUIZ_FILE_PREFIX = "quiz-";
+
     private final String baseDirectory;
 
     private final ObjectMapper objectMapper;
@@ -44,7 +46,12 @@ public class FileBasedQuizRepository implements QuizRepository {
     public List<Quiz> findAll() {
         Path baseDirectory = Paths.get(this.baseDirectory);
         try (Stream<Path> paths = Files.list(baseDirectory)) {
-            return paths.map(path -> convertJsonToQuiz(path.toFile()))
+            return paths
+                    .map(Path::toFile)
+//                    .peek(file -> System.out.println(file.getName()))
+                    .filter(file -> file.getName().startsWith(QUIZ_FILE_PREFIX))
+                    .map(this::convertJsonToQuiz)
+//                    .peek(System.out::println)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .sorted(Comparator.comparing(Quiz::getName))
@@ -123,6 +130,6 @@ public class FileBasedQuizRepository implements QuizRepository {
      * @return the generated file name in the format "quiz-{quizId}.json"
      */
     private String generateQuizFileName(String quizId) {
-        return "quiz-%s.json".formatted(quizId.toLowerCase());
+        return "%s%s.json".formatted(QUIZ_FILE_PREFIX, quizId.toLowerCase());
     }
 }

@@ -10,12 +10,12 @@ import org.example.quizshow.generator.openai.model.Role;
 import org.example.quizshow.model.AiEngine;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.service.ErrorLoggingService;
+import org.example.quizshow.service.QuizConfigService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.FormatProcessor.FMT;
 import static org.example.quizshow.generator.openai.model.AiQuizRecords.AiQuiz;
 
 @Log4j2
@@ -49,23 +49,23 @@ public class OpenAiQuizGenerator implements QuizGenerator {
             \"""
             """;
 
-    private OpenAiInterface openAiInterface;
-    private OpenAiService openAiService;
-    private AiQuizTransformer aiQuizTransformer = new AiQuizTransformer();
-    private ObjectMapper objectMapper;
-    private ErrorLoggingService errorLoggingService;
+    private final OpenAiService openAiService;
+    private final AiQuizTransformer aiQuizTransformer;
+    private final ObjectMapper objectMapper;
+    private final ErrorLoggingService errorLoggingService;
+    private final QuizConfigService quizConfigService;
 
     public OpenAiQuizGenerator(
-            OpenAiInterface openAiInterface,
             OpenAiService openAiService,
             AiQuizTransformer aiQuizTransformer,
             ObjectMapper objectMapper,
-            ErrorLoggingService errorLoggingService) {
-        this.openAiInterface = openAiInterface;
+            ErrorLoggingService errorLoggingService,
+            QuizConfigService quizConfigService) {
         this.openAiService = openAiService;
         this.aiQuizTransformer = aiQuizTransformer;
         this.objectMapper = objectMapper;
         this.errorLoggingService = errorLoggingService;
+        this.quizConfigService = quizConfigService;
     }
 
     private JsonQuizExtractor jsonQuizExtractor = new JsonQuizExtractor();

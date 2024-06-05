@@ -46,9 +46,9 @@ public class QuizCommands {
         }
 
         quizList.forEach( quiz -> {
-            ctx.getTerminal().writer().println(withColour(quiz.original(), AttributedStyle.YELLOW));
+            Writer.with(ctx).text(withColour(quiz.original(), AttributedStyle.YELLOW)).flush(false).write();
         });
-        ctx.getTerminal().writer().flush();
+        Writer.with(ctx).justFlush();
     }
 
     @Command(description = "Generate a new quiz")
@@ -64,11 +64,50 @@ public class QuizCommands {
                     defaultValue = "10"
             ) int numOfQuestions) {
 
-        ctx.getTerminal().writer().println("Generating quiz... this may take a while");
+        Writer.with(ctx).text("Generating quiz... this may take a while").write();
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        ctx.getTerminal().writer().println("Quiz generated!");
+        Writer.with(ctx).text("Quiz generated!").write();
+    }
+
+    static class Writer {
+        private final CommandContext ctx;
+        private String text;
+        private boolean flush = true;
+
+        private Writer(CommandContext ctx) {
+            this.ctx = ctx;
+        }
+
+        public static Writer with(CommandContext ctx) {
+            Writer writer = new Writer(ctx);
+            return writer;
+        }
+
+        public Writer text(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public Writer flush() {
+            return flush(true);
+        }
+        public Writer flush(boolean flush) {
+            this.flush = flush;
+            return this;
+        }
+
+        public void write() {
+            this.ctx.getTerminal().writer().println(text);
+            if( this.flush ) {
+                ctx.getTerminal().writer().flush();
+            }
+        }
+
+        public void justFlush() {
+            ctx.getTerminal().writer().flush();
+        }
     }
 
     private static String withColour(String input, int styleColor) {

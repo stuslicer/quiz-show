@@ -1,9 +1,11 @@
 package org.example.quizshow.service;
 
 import lombok.extern.log4j.Log4j2;
+import org.example.quizshow.generator.QuizConfig;
 import org.example.quizshow.generator.QuizGenerator;
 import org.example.quizshow.generator.QuizGeneratorConfig;
 import org.example.quizshow.model.Quiz;
+import org.example.quizshow.model.QuizDifficulty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,17 +15,24 @@ import java.util.List;
 @Service
 public class QuizService {
 
-    private QuizGenerator quizGenerator;
-    private QuizRepository quizRepository;
+    private final QuizGenerator quizGenerator;
+    private final QuizRepository quizRepository;
+    private final QuizConfigService quizConfigService;
+
+    private final QuizConfig quizConfig;
 
     @Autowired
-    public QuizService(QuizGenerator quizGenerator, QuizRepository quizRepository) {
+    public QuizService(QuizGenerator quizGenerator, QuizRepository quizRepository, QuizConfigService quizConfigService) {
         this.quizGenerator = quizGenerator;
         this.quizRepository = quizRepository;
+        this.quizConfigService = quizConfigService;
+
+        this.quizConfig  = quizConfigService.getQuizConfig();
     }
 
     public Quiz generateNewQuiz(String prompt, int numberOfQuestions) {
-        Quiz newQuiz = quizGenerator.generateQuiz(new QuizGeneratorConfig(prompt, numberOfQuestions));
+        Quiz newQuiz = quizGenerator.generateQuiz(
+                new QuizGeneratorConfig(prompt, numberOfQuestions, QuizDifficulty.medium, quizConfig.defaultAiModel()));
         log.debug(STR."New quiz created: \{newQuiz}");
 
         Quiz saved = quizRepository.saveQuiz(newQuiz);
