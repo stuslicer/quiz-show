@@ -24,6 +24,7 @@ public class OpenAiService {
      * @return the content of the message in the first response choice of the chat response
      */
     public String sendRequest(List<OpenAIRecords.Message> messages, AiModels model, double temperature) {
+        log.debug(STR."Sending request with \{messages.size()} messages, using model \{model}");
         OpenAIRecords.ChatResponse chatResponse = openAiInterface.getChatResponse(
                 new OpenAIRecords.ChatRequest(model.getId(),
                         messages, temperature));

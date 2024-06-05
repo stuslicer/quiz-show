@@ -5,15 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import org.example.quizshow.generator.QuizGenerator;
 import org.example.quizshow.generator.QuizGeneratorConfig;
-import org.example.quizshow.generator.openai.model.AiModels;
 import org.example.quizshow.generator.openai.model.OpenAIRecords.*;
 import org.example.quizshow.generator.openai.model.Role;
+import org.example.quizshow.model.AiEngine;
 import org.example.quizshow.model.Quiz;
+import org.example.quizshow.service.ErrorLoggingService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.FormatProcessor.FMT;
 import static org.example.quizshow.generator.openai.model.AiQuizRecords.AiQuiz;
 
 @Log4j2
@@ -51,12 +53,19 @@ public class OpenAiQuizGenerator implements QuizGenerator {
     private OpenAiService openAiService;
     private AiQuizTransformer aiQuizTransformer = new AiQuizTransformer();
     private ObjectMapper objectMapper;
+    private ErrorLoggingService errorLoggingService;
 
-    public OpenAiQuizGenerator(OpenAiInterface openAiInterface, OpenAiService openAiService, AiQuizTransformer aiQuizTransformer, ObjectMapper objectMapper) {
+    public OpenAiQuizGenerator(
+            OpenAiInterface openAiInterface,
+            OpenAiService openAiService,
+            AiQuizTransformer aiQuizTransformer,
+            ObjectMapper objectMapper,
+            ErrorLoggingService errorLoggingService) {
         this.openAiInterface = openAiInterface;
         this.openAiService = openAiService;
         this.aiQuizTransformer = aiQuizTransformer;
         this.objectMapper = objectMapper;
+        this.errorLoggingService = errorLoggingService;
     }
 
     private JsonQuizExtractor jsonQuizExtractor = new JsonQuizExtractor();
@@ -71,12 +80,21 @@ public class OpenAiQuizGenerator implements QuizGenerator {
         return populateNewQuiz(config, quiz);
     }
 
+    /**
+     * Generates an AI quiz based on the given configuration.
+     *
+     * @param config The configuration for generating the AI quiz.
+     * @return An instance of AiQuiz generated based on the given configuration.
+     */
     private AiQuiz generateAiQuiz(QuizGeneratorConfig config) {
 
-        Message initialPrompt = new Message(Role.USER, QUIZ_SETUP_PROMPT);
-        Message quizSubject = new Message(Role.USER, "6 questions on records in Java 17");
+        log.debug(STR."Creating quiz with prompt \{config.prompt()} and number of questions \{config.numberOfQuestions()}");
 
-        String response = openAiService.sendRequest(List.of(initialPrompt, quizSubject), AiModels.GPT_4_TURBO, 0.7);
+        Message initialPrompt = new Message(Role.USER, QUIZ_SETUP_PROMPT);
+        Message quizSubject = new Message(Role.USER,
+                STR."\{config.numberOfQuestions()} questions on \{config.prompt()}");
+
+        String response = openAiService.sendRequest(List.of(initialPrompt, quizSubject), config.aiModels(), 0.7);
 
         return convertJsonToQuiz(jsonQuizExtractor.extractJsonForAiQuiz(response));
     }
@@ -85,6 +103,9 @@ public class OpenAiQuizGenerator implements QuizGenerator {
         quiz.setId(UUID.randomUUID().toString());
         quiz.setName( config.prompt() );
         quiz.setDescription( config.prompt() );
+        quiz.setAiEngine(AiEngine.openAI);
+        quiz.setModel(config.aiModels());
+        quiz.setAiPromptUsed(config.prompt());
         return quiz;
     }
 
@@ -92,6 +113,7 @@ public class OpenAiQuizGenerator implements QuizGenerator {
         try {
             return objectMapper.readValue(jsonQuiz, AiQuiz.class);
         } catch (JsonProcessingException e) {
+            errorLoggingService.logErrorWithString(e, jsonQuiz);
             throw new RuntimeException(e);
         }
     }

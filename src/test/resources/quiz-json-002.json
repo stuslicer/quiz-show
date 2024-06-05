@@ -1,0 +1,129 @@
+{
+  "questions": [
+    {
+      "question": "What is the primary benefit of using text blocks in Java?",
+      "options": [
+        {
+          "option": "To handle exceptions",
+          "correct": false,
+          "explanation": "Text blocks are not related to exception handling; they are used for managing multiline string literals."
+        },
+        {
+          "option": "To create multiline string literals easily",
+          "correct": true,
+          "explanation": "Text blocks simplify the creation of multiline string literals, allowing for easier formatting and readability."
+        },
+        {
+          "option": "To improve the performance of string operations",
+          "correct": false,
+          "explanation": "Text blocks do not inherently improve performance but make it easier to write and manage multiline strings."
+        },
+        {
+          "option": "To encrypt data",
+          "correct": false,
+          "explanation": "Text blocks have no functionality related to data encryption."
+        }
+      ]
+    },
+    {
+      "question": "Which version of Java introduced text blocks?",
+      "options": [
+        {
+          "option": "Java 8",
+          "correct": false,
+          "explanation": "Java 8 did not introduce text blocks; it introduced lambda expressions and the Stream API."
+        },
+        {
+          "option": "Java 11",
+          "correct": false,
+          "explanation": "Java 11 introduced new features like the HttpClient API but not text blocks."
+        },
+        {
+          "option": "Java 13",
+          "correct": true,
+          "explanation": "Text blocks were introduced as a preview feature in Java 13."
+        },
+        {
+          "option": "Java 15",
+          "correct": false,
+          "explanation": "While Java 15 included text blocks as a standard feature, they were first introduced in Java 13."
+        }
+      ]
+    },
+    {
+      "question": "Which of the following is a correct example of a text block?",
+      "options": [
+        {
+          "option": "\"\"\"Hello, World!\"\"\"",
+          "correct": false,
+          "explanation": "This is an incorrect syntax for text blocks in Java."
+        },
+        {
+          "option": "\"Hello,\\nWorld!\"",
+          "correct": false,
+          "explanation": "This is a standard string, not a text block."
+        },
+        {
+          "option": "\"\"\"Hello,\\nWorld!\"\"\"",
+          "correct": false,
+          "explanation": "This incorrectly uses escape sequences which are not needed in text blocks."
+        },
+        {
+          "option": "\"\"\"\nHello,\nWorld!\n\"\"\"",
+          "correct": true,
+          "explanation": "This is the correct syntax for a text block, preserving natural line breaks and without needing escape sequences."
+        }
+      ]
+    },
+    {
+      "question": "Which of the following statements about text blocks is true?",
+      "options": [
+        {
+          "option": "Text blocks can be concatenated using the '+' operator.",
+          "correct": false,
+          "explanation": "While technically true, using '+' for concatenation is not recommended as text blocks are designed to avoid such necessities."
+        },
+        {
+          "option": "Text blocks support interpolation of expressions directly within the block.",
+          "correct": false,
+          "explanation": "Java does not support interpolation within text blocks; this is a feature of some other languages like JavaScript or Python."
+        },
+        {
+          "option": "Text blocks automatically format the text to align with the code's indentation.",
+          "correct": true,
+          "explanation": "Text blocks automatically consider the code's indentation to keep the formatted string clean and aligned with the rest of the code."
+        },
+        {
+          "option": "Text blocks are stored differently in memory compared to regular strings.",
+          "correct": false,
+          "explanation": "Text blocks are treated the same as regular strings in memory."
+        }
+      ]
+    },
+    {
+      "question": "How are newline characters handled in Java text blocks?",
+      "options": [
+        {
+          "option": "They must be explicitly escaped with '\\n'.",
+          "correct": false,
+          "explanation": "In text blocks, newline characters are part of the block and do not need to be escaped."
+        },
+        {
+          "option": "They are automatically inserted at the end of every line.",
+          "correct": true,
+          "explanation": "Text blocks preserve the natural line breaks as they appear in the block."
+        },
+        {
+          "option": "They are ignored and must be manually added after the text block.",
+          "correct": false,
+          "explanation": "Newline characters are automatically included; manual addition is not necessary."
+        },
+        {
+          "option": "They are only recognized if the text block is written in a certain IDE.",
+          "correct": false,
+          "explanation": "The handling of newline characters in text blocks is consistent across all environments and does not depend on the IDE."
+        }
+      ]
+    }
+  ]
+}

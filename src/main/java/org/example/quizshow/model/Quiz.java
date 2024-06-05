@@ -1,9 +1,9 @@
 package org.example.quizshow.model;
 
 import lombok.Data;
+import org.example.quizshow.generator.openai.model.AiModels;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -18,8 +18,10 @@ public class Quiz {
     private QuizDifficulty difficulty = QuizDifficulty.simple;
     private Set<String> tags = new TreeSet<>();
     private String aiPromptUsed;
-    LocalDateTime generatedOn = LocalDateTime.now();
-    LocalDateTime lastUpdatedOn = LocalDateTime.now();
+    private AiEngine aiEngine = AiEngine.openAI;
+    private AiModels model;
+    private LocalDateTime generatedOn = LocalDateTime.now();
+    private LocalDateTime lastUpdatedOn = LocalDateTime.now();
     private List<Question> questions;
 
     /**

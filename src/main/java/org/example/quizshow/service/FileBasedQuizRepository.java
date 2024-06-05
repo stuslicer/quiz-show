@@ -10,8 +10,15 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @Service
@@ -28,15 +35,39 @@ public class FileBasedQuizRepository implements QuizRepository {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Find all {@link Quiz}s in the file repo.
+     * The resulting list is sorted by name.
+     * @return
+     */
+    @Override
+    public List<Quiz> findAll() {
+        Path baseDirectory = Paths.get(this.baseDirectory);
+        try (Stream<Path> paths = Files.list(baseDirectory)) {
+            return paths.map(path -> convertJsonToQuiz(path.toFile()))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .sorted(Comparator.comparing(Quiz::getName))
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public Optional<Quiz> loadById(String id) {
         Assert.notNull(id, "Quiz id must be set.");
+
         File file = new File(this.baseDirectory, generateQuizFileName(id));
+        return convertJsonToQuiz(file);
+    }
+
+    private Optional<Quiz> convertJsonToQuiz(File jsonFile) {
         try {
-            Quiz loadedQuiz = objectMapper.readValue(file, Quiz.class);
+            Quiz loadedQuiz = objectMapper.readValue(jsonFile, Quiz.class);
             return Optional.of(loadedQuiz);
         } catch (IOException e) {
-            log.error("Failed to load quiz from file: {}", file.getAbsolutePath(), e);
+            log.error("Failed to load quiz from file: {}", jsonFile.getAbsolutePath(), e);
             return Optional.empty();
         }
     }
@@ -68,7 +99,7 @@ public class FileBasedQuizRepository implements QuizRepository {
 
         Optional<Quiz> loadedQuiz = loadById(id);
 
-        if( loadedQuiz.isPresent() ) {
+        if (loadedQuiz.isPresent()) {
             File file = new File(this.baseDirectory, generateQuizFileName(loadedQuiz.get()));
             return file.delete();
         }

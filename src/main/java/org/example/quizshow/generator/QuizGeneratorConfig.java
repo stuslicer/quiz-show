@@ -1,5 +1,6 @@
 package org.example.quizshow.generator;
 
+import org.example.quizshow.generator.openai.model.AiModels;
 import org.example.quizshow.model.QuizDifficulty;
 
 /**
@@ -8,13 +9,14 @@ import org.example.quizshow.model.QuizDifficulty;
 public record QuizGeneratorConfig(
         String prompt,
         int numberOfQuestions,
-        QuizDifficulty difficulty
+        QuizDifficulty difficulty,
+        AiModels aiModels
 ) {
 
     public QuizGeneratorConfig(String prompt, int numberOfQuestions) {
-        this(prompt, numberOfQuestions, QuizDifficulty.medium);
+        this(prompt, numberOfQuestions, QuizDifficulty.medium, AiModels.GPT_4_TURBO);
     }
     public QuizGeneratorConfig(String prompt) {
-        this(prompt, 10, QuizDifficulty.medium);
+        this(prompt, 10, QuizDifficulty.medium, AiModels.GPT_4_TURBO);
     }
 }

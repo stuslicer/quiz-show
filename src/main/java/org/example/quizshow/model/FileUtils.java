@@ -42,4 +42,13 @@ public class FileUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public static void writeStringToFile(String fileName, String content) {
+        try {
+            Files.writeString(Path.of(fileName), content);
+        } catch (IOException e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+    }
 }
