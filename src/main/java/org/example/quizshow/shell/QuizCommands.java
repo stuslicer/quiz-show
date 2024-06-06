@@ -2,7 +2,6 @@ package org.example.quizshow.shell;
 
 
 import org.example.quizshow.service.QuizService;
-import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.command.CommandContext;
@@ -10,9 +9,11 @@ import org.springframework.shell.command.CommandRegistration;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
+
+import static org.example.quizshow.shell.ShellUtils.*;
+import static org.example.quizshow.shell.ShellUtils.withColour;
 
 @Component
 @Command
@@ -46,7 +47,7 @@ public class QuizCommands {
         }
 
         quizList.forEach( quiz -> {
-            Writer.with(ctx).text(withColour(quiz.original(), AttributedStyle.YELLOW)).flush(false).write();
+            Writer.with(ctx).as(green).text( quiz.original()).flush(false).write();
         });
         Writer.with(ctx).justFlush();
     }
@@ -64,56 +65,12 @@ public class QuizCommands {
                     defaultValue = "10"
             ) int numOfQuestions) {
 
-        Writer.with(ctx).text("Generating quiz... this may take a while").write();
+        Writer.with(ctx).as(magenta).text("Generating quiz... this may take a while").write();
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        Writer.with(ctx).text("Quiz generated!").write();
+        Writer.with(ctx).as(magenta).text("Quiz generated!").write();
     }
 
-    static class Writer {
-        private final CommandContext ctx;
-        private String text;
-        private boolean flush = true;
-
-        private Writer(CommandContext ctx) {
-            this.ctx = ctx;
-        }
-
-        public static Writer with(CommandContext ctx) {
-            Writer writer = new Writer(ctx);
-            return writer;
-        }
-
-        public Writer text(String text) {
-            this.text = text;
-            return this;
-        }
-
-        public Writer flush() {
-            return flush(true);
-        }
-        public Writer flush(boolean flush) {
-            this.flush = flush;
-            return this;
-        }
-
-        public void write() {
-            this.ctx.getTerminal().writer().println(text);
-            if( this.flush ) {
-                ctx.getTerminal().writer().flush();
-            }
-        }
-
-        public void justFlush() {
-            ctx.getTerminal().writer().flush();
-        }
-    }
-
-    private static String withColour(String input, int styleColor) {
-        AttributedStringBuilder aob = new AttributedStringBuilder();
-        aob.append(input, AttributedStyle.DEFAULT.foreground(styleColor));
-        return aob.toAnsi();
-    }
 
 }

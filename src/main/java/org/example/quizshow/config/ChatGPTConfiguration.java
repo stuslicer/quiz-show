@@ -40,9 +40,11 @@ public class ChatGPTConfiguration {
      * @return an instance of the OpenAiInterface
      */
     @Bean
-    public OpenAiInterface openAiInterface(WebClient webClient) {
+    public OpenAiInterface openAiInterface(
+            WebClient webClient,
+            @Value("${openai.timeout.secs:120}") int timeoutSeconds) {
         WebClientAdapter adapter =WebClientAdapter.create(webClient);
-        adapter.setBlockTimeout(Duration.of(2, ChronoUnit.MINUTES));
+        adapter.setBlockTimeout(Duration.of(timeoutSeconds, ChronoUnit.SECONDS));
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
         return factory.createClient(OpenAiInterface.class);
     }
