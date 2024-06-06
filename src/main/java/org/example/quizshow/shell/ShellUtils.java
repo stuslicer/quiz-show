@@ -3,6 +3,7 @@ package org.example.quizshow.shell;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.shell.command.CommandContext;
+import org.springframework.util.Assert;
 
 import java.util.function.Function;
 
@@ -15,46 +16,83 @@ public class ShellUtils {
     }
 
     /**
-     * A base function that takes an integer representing a colour and a string of text
-     * and returns a formatted string with the text coloured according to the specified colour.
+     * Represents a base function for formatting text with colour and style.
+     * This function takes an integer representing the colour, a string representing the text, and an AttributedStyle object
+     * representing the style, and returns the formatted text as a string.
+     *
+     * Usage:
+     * Function<Integer, Function<String, Function<AttributedStyle, String>>> baseFunction =
+     *         colour -> text -> style -> {
+     *             AttributedStringBuilder aob = new AttributedStringBuilder();
+     *             aob.append(text, style.foreground(colour));
+     *             return aob.toAnsi();
+     *         };
+     *
+     * Method: baseFunction.apply(colour).apply(text).apply(style)
+     *
+     * Example:
+     * AttributedStyle style = AttributedStyle.DEFAULT.foreground(AttributedStyle.RED);
+     * String formattedText = baseFunction.apply(255).apply("Hello").apply(style);
+     * System.out.println(formattedText);
+     *
+     * Output: Hello (coloured and styled according to the provided colour and style)
      */
-    private static Function<Integer, Function<String, String>> baseFunction =
-            colour -> text -> {
+    private static Function<Integer, Function<String, Function<AttributedStyle, String>>> baseFunction =
+            colour -> text -> style -> {
                 AttributedStringBuilder aob = new AttributedStringBuilder();
-                aob.append(text, AttributedStyle.DEFAULT.foreground(colour));
+                aob.append(text, style.foreground(colour));
                 return aob.toAnsi();
             };
 
-    public static Function<String, String> black = baseFunction.apply(AttributedStyle.BLACK);
-    public static Function<String, String> blue = baseFunction.apply(AttributedStyle.BLUE);
-    public static Function<String, String> cyan = baseFunction.apply(AttributedStyle.CYAN);
-    public static Function<String, String> green = baseFunction.apply(AttributedStyle.GREEN);
-    public static Function<String, String> magenta = baseFunction.apply(AttributedStyle.MAGENTA);
-    public static Function<String, String> red = baseFunction.apply(AttributedStyle.RED);
-    public static Function<String, String> yellow = baseFunction.apply(AttributedStyle.YELLOW);
+    /**
+     * A set of curried functions to simplify adding a colour to a text.
+     * The resulting function is passed the appropriate {@link AttributedStyle}
+     */
 
+
+    public static Function<String, Function<AttributedStyle, String>> black = baseFunction.apply(AttributedStyle.BLACK);
+    public static Function<String, Function<AttributedStyle, String>> blue = baseFunction.apply(AttributedStyle.BLUE);
+    public static Function<String, Function<AttributedStyle, String>> cyan = baseFunction.apply(AttributedStyle.CYAN);
+    public static Function<String, Function<AttributedStyle, String>> green = baseFunction.apply(AttributedStyle.GREEN);
+    public static Function<String, Function<AttributedStyle, String>> magenta = baseFunction.apply(AttributedStyle.MAGENTA);
+    public static Function<String, Function<AttributedStyle, String>> red = baseFunction.apply(AttributedStyle.RED);
+    public static Function<String, Function<AttributedStyle, String>> yellow = baseFunction.apply(AttributedStyle.YELLOW);
+
+    /**
+     * The Writer class provides functionality for writing text messages to a terminal.
+     *
+     * Follows the builder pattern to simplify the addition of colour, style and automatically flushing of writer's stream.
+     */
     public static class Writer {
         private final CommandContext ctx;
         private String text;
         private boolean flush = true;
-        private Function<String, String> colourText;
+        private Function<String, Function<AttributedStyle, String>> colourText;
+        private AttributedStyle style = AttributedStyle.DEFAULT.foreground(AttributedStyle.BLACK);
 
         private Writer(CommandContext ctx) {
             this.ctx = ctx;
         }
 
         public static Writer with(CommandContext ctx) {
+            Assert.notNull(ctx, "CommandContext must not be null");
             Writer writer = new Writer(ctx);
             return writer;
         }
 
         public Writer text(String text) {
+            Assert.notNull(text, "Text must not be null");
             this.text = text;
             return this;
         }
 
-        public Writer as(Function<String, String> colourText) {
+        public Writer as(Function<String, Function<AttributedStyle, String>> colourText) {
             this.colourText = colourText;
+            return this;
+        }
+
+        public Writer style(AttributedStyle style) {
+            this.style = style;
             return this;
         }
 
@@ -66,14 +104,22 @@ public class ShellUtils {
             return this;
         }
 
+        /**
+         * Writes the text to the terminal output stream.
+         * If a colourText function is provided, it applies the function to the text and style before printing.
+         * If the flush flag is set to true, the writer's stream is flushed after writing the text.
+         */
         public void write() {
-            String toPrint = this.colourText != null ? this.colourText.apply(text) : text;
+            String toPrint = this.colourText != null ? this.colourText.apply(text).apply(style) : text;
             this.ctx.getTerminal().writer().println(toPrint);
             if( this.flush ) {
                 ctx.getTerminal().writer().flush();
             }
         }
 
+        /**
+         * Just flushes the stream, nothing is written to the stream.
+         */
         public void justFlush() {
             ctx.getTerminal().writer().flush();
         }

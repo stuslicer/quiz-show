@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -28,6 +29,10 @@ public class QuizService {
         this.quizConfigService = quizConfigService;
 
         this.quizConfig  = quizConfigService.getQuizConfig();
+    }
+
+    public Optional<Quiz> getQuizById(String id) {
+        return quizRepository.loadById(id);
     }
 
     public Quiz generateNewQuiz(String prompt, int numberOfQuestions) {

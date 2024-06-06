@@ -1,6 +1,8 @@
 package org.example.quizshow.shell;
 
 
+import org.example.quizshow.model.Quiz;
+import org.example.quizshow.runner.QuizRunner;
 import org.example.quizshow.service.QuizService;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.shell.command.annotation.Option;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.example.quizshow.shell.ShellUtils.*;
 import static org.example.quizshow.shell.ShellUtils.withColour;
@@ -47,9 +50,27 @@ public class QuizCommands {
         }
 
         quizList.forEach( quiz -> {
-            Writer.with(ctx).as(green).text( quiz.original()).flush(false).write();
+            Writer.with(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original()).flush(false).write();
         });
         Writer.with(ctx).justFlush();
+    }
+
+    @Command(description = "Runs a quiz")
+    public void run(
+            CommandContext ctx,
+            @Option(longNames = "run",
+            shortNames = 'r',
+            description = "Run the given quiz",
+            defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
+            required = true) String quizId) {
+
+        Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
+
+        if (quizOptional.isPresent()) {
+            QuizRunner runner = new QuizRunner(ctx);
+            runner.run(quizOptional.get());
+        }
+
     }
 
     @Command(description = "Generate a new quiz")
@@ -69,7 +90,7 @@ public class QuizCommands {
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        Writer.with(ctx).as(magenta).text("Quiz generated!").write();
+        Writer.with(ctx).as(magenta).style(AttributedStyle.BOLD).text("Quiz generated!").write();
     }
 
 
