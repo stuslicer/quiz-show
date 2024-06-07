@@ -18,8 +18,12 @@ public class FileUtils {
      * @throws RuntimeException if an I/O error occurs while reading the file
      */
     public static List<String> readFileAsStrings(String fileName) {
+        return readFileAsStrings(Path.of(fileName));
+    }
+
+    public static List<String> readFileAsStrings(Path fileAsPath) {
         try {
-            return Files.lines(Path.of(fileName))
+            return Files.lines(fileAsPath)
                     .toList();
         } catch (IOException e) {
             log.error(e);
@@ -35,8 +39,12 @@ public class FileUtils {
      * @throws RuntimeException if an I/O error occurs while reading the file
      */
     public static String readFileAsString(String fileName) {
+        return readFileAsString(Path.of(fileName));
+    }
+
+    public static String readFileAsString(Path fileAsPath) {
         try {
-            return Files.readString(Path.of(fileName));
+            return Files.readString(fileAsPath);
         } catch (IOException e) {
             log.error(e);
             throw new RuntimeException(e);

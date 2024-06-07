@@ -3,16 +3,21 @@ package org.example.quizshow.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
+import org.example.quizshow.model.FileUtils;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Log4j2
 @Repository
@@ -49,6 +54,25 @@ public class FileBasedQuizResultRepository implements QuizResultRepository {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public List<QuizResult> getResultsForQuiz(String quizId) {
+        try (Stream<Path> paths = Files.list(Path.of(baseDirectory))) {
+            return paths.filter(Files::isRegularFile)
+                    .filter(f -> f.getFileName().toString().startsWith(STR."\{RESULT_FILE_PREFIX}\{quizId}"))
+                    .flatMap(fileAsPath -> FileUtils.readFileAsStrings(fileAsPath).stream())
+                    .map(jsonString -> convertJsonToQuizResult(jsonString))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<QuizResult> convertJsonToQuizResult(String jsonString) {
+        return JsonUtils.convertJsonToObject(jsonString, QuizResult.class);
     }
 
     /**

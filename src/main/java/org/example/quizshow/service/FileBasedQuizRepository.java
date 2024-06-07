@@ -48,10 +48,8 @@ public class FileBasedQuizRepository implements QuizRepository {
         try (Stream<Path> paths = Files.list(baseDirectory)) {
             return paths
                     .map(Path::toFile)
-//                    .peek(file -> System.out.println(file.getName()))
                     .filter(file -> file.getName().startsWith(QUIZ_FILE_PREFIX))
                     .map(this::convertJsonToQuiz)
-//                    .peek(System.out::println)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .sorted(Comparator.comparing(Quiz::getName))

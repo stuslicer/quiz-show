@@ -28,18 +28,20 @@ public class QuizRunner {
     private static final int OPTION_INDENT = 4;
 
     private final CommandContext ctx;
+    private final Quiz quiz;
 
     private final LineReader lineReader;
 
     private final String paddedIndent;
 
-    public QuizRunner(CommandContext ctx) {
+    public QuizRunner(CommandContext ctx, Quiz quiz) {
         this.ctx = ctx;
+        this.quiz = quiz;
         lineReader = LineReaderBuilder.builder().terminal(ctx.getTerminal()).build();
         paddedIndent = String.format("%-" + OPTION_INDENT + "s", " ");
     }
 
-    public QuizResult run(Quiz quiz) {
+    public QuizResult run() {
 
         record OptionHolder(int number, QuestionOption option) {};
 

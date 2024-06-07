@@ -3,6 +3,7 @@ package org.example.quizshow.shell;
 
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizResult;
+import org.example.quizshow.model.QuizResultSummary;
 import org.example.quizshow.runner.QuizRunner;
 import org.example.quizshow.service.QuizResultRepository;
 import org.example.quizshow.service.QuizService;
@@ -40,20 +41,28 @@ public class QuizCommands {
                     shortNames = 'f',
                     required = false,
                     description = "filter quiz",
-                    arity = CommandRegistration.OptionArity.ZERO_OR_ONE) String filter) {
+                    arity = CommandRegistration.OptionArity.ZERO_OR_ONE) String filter,
+            @Option(longNames = "withStats",
+                    shortNames = 's',
+                    required = false,
+                    description = "show stats for quiz runs",
+                    defaultValue = "false",
+                    arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats) {
 
-        record QuizName(String original, String lowercase) {};
+        record QuizDetails(String quizId, String original, String lowercase, QuizResultSummary summary) {};
 
-        List<QuizName> quizList = quizService.getAllQuizzes()
+        List<QuizDetails> quizList = quizService.getAllQuizzes()
                 .stream()
-                .map(q -> new QuizName(q.getName(), q.getName().toLowerCase()) )
+                .map(q -> new QuizDetails( q.getId(),q.getName(), q.getName().toLowerCase(),
+                        withStats ? quizService.getQuizResultSummary(q.getId()).orElse(null) : null) )
                 .toList();
 
         if( filter != null && !filter.isEmpty()) {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
         quizList.forEach( quiz -> {
-            writeWith(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original()).flush(false).write();
+            String stats = quiz.summary() != null ? quiz.summary().toString() : "";
+            writeWith(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original() + stats).flush(false).write();
         });
         writeWith(ctx).justFlush();
     }
@@ -61,21 +70,47 @@ public class QuizCommands {
     @Command(description = "Runs a quiz")
     public void run(
             CommandContext ctx,
-            @Option(longNames = "run",
-            shortNames = 'r',
-            description = "Run the given quiz",
-            defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
-            required = true) String quizId) {
-
+            @Option(longNames = "quiz",
+                    shortNames = 'q',
+                    description = "Run the given quiz",
+                    defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
+                    required = true) String quizId,
+            @Option(longNames = "dryRun",
+                    shortNames = 'd',
+                    description = "Dry run, don't save results",
+                    defaultValue = "false",
+                    required = false) boolean dryRun
+    ) {
         Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
 
         if (quizOptional.isPresent()) {
-            QuizRunner runner = new QuizRunner(ctx);
+            QuizRunner runner = new QuizRunner(ctx, quizOptional.get());
 
-            QuizResult quizResult = runner.run(quizOptional.get());
-            // TODO - move to QuizSerivice!
-            quizResultRepository.addResult(quizResult);
+            QuizResult quizResult = runner.run();
 
+            if( ! dryRun ) {
+                quizResultRepository.addResult(quizResult);
+                writeWith(ctx).text("Results written to history.");
+            }
+        }
+
+    }
+
+    @Command(description = "Displays summary statistics for quiz")
+    public void summary(
+            CommandContext ctx,
+            @Option(longNames = "quiz",
+                    shortNames = 'q',
+                    description = "Run the given quiz",
+                    defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
+                    required = true) String quizId
+    ) {
+        Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
+
+        if (quizOptional.isPresent()) {
+            Optional<QuizResultSummary> quizResultSummary = quizService.getQuizResultSummary(quizId);
+
+            writeWith(ctx).text(quizResultSummary.toString()).write();
         }
 
     }

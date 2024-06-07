@@ -10,4 +10,6 @@ public interface QuizResultRepository {
 
     void addResult(QuizResult result);
 
+    List<QuizResult> getResultsForQuiz(String quizId);
+
 }

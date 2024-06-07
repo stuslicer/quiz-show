@@ -6,6 +6,8 @@ import org.example.quizshow.generator.QuizGenerator;
 import org.example.quizshow.generator.QuizGeneratorConfig;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizDifficulty;
+import org.example.quizshow.model.QuizResult;
+import org.example.quizshow.model.QuizResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +20,16 @@ public class QuizService {
 
     private final QuizGenerator quizGenerator;
     private final QuizRepository quizRepository;
+    private final QuizResultRepository quizResultRepository;
     private final QuizConfigService quizConfigService;
 
     private final QuizConfig quizConfig;
 
     @Autowired
-    public QuizService(QuizGenerator quizGenerator, QuizRepository quizRepository, QuizConfigService quizConfigService) {
+    public QuizService(QuizGenerator quizGenerator, QuizRepository quizRepository, QuizResultRepository quizResultRepository, QuizConfigService quizConfigService) {
         this.quizGenerator = quizGenerator;
         this.quizRepository = quizRepository;
+        this.quizResultRepository = quizResultRepository;
         this.quizConfigService = quizConfigService;
 
         this.quizConfig  = quizConfigService.getQuizConfig();
@@ -34,6 +38,27 @@ public class QuizService {
     public Optional<Quiz> getQuizById(String id) {
         return quizRepository.loadById(id);
     }
+
+    public void addResult(QuizResult result) {
+        quizResultRepository.addResult(result);
+    }
+
+
+    public Optional<QuizResultSummary> getQuizResultSummary(String quizId) {
+
+        List<QuizResult> resultsForQuiz = quizResultRepository.getResultsForQuiz(quizId);
+
+        ResultCalculator collected = resultsForQuiz.stream()
+                .collect(ResultCalculator::new,
+                        ResultCalculator::append,
+                        (summary1, summary2) -> {
+                            // not required - no parallelism here!
+                        }
+                );
+
+        return collected.getSummary();
+    }
+
 
     public Quiz generateNewQuiz(String prompt, int numberOfQuestions) {
         Quiz newQuiz = quizGenerator.generateQuiz(
@@ -48,5 +73,37 @@ public class QuizService {
     public List<Quiz> getAllQuizzes() {
         return quizRepository.findAll();
     }
+
+    class ResultCalculator {
+        private String quizId;
+        private int count;
+        private int perfect;
+        private double timeMean;
+        private double successPercentageMean;
+        private double successSumOfSquares;
+
+        public void append(QuizResult quizResult) {
+            this.quizId = quizResult.quizId();
+            count++;
+            if( quizResult.isPerfect() ) perfect++;
+            double timeDelta = quizResult.getDuration() - timeMean;
+            timeMean += timeDelta / count;
+            double successDelta = quizResult.getSuccessPercentage() - successPercentageMean;
+            successPercentageMean += successDelta / count;
+            successSumOfSquares += successDelta * successDelta;
+        }
+
+        public Optional<QuizResultSummary> getSummary() {
+            return this.quizId != null ?
+                    Optional.of(new QuizResultSummary(
+                            quizId,
+                            count,
+                            perfect,
+                            successPercentageMean,
+                            timeMean
+                    )) : Optional.empty();
+        }
+    }
+
 
 }

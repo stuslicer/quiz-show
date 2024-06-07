@@ -17,7 +17,7 @@ public class JsonUtils {
 
     @Autowired
     public JsonUtils(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+        JsonUtils.objectMapper = objectMapper;
     }
 
     public static <T> Optional<T> convertJsonToObject(
@@ -35,6 +35,25 @@ public class JsonUtils {
             return Optional.of(loadedQuiz);
         } catch (IOException e) {
             log.error("Failed to load quiz from file: {}", jsonFile.getAbsolutePath(), e);
+            return Optional.empty();
+        }
+    }
+
+    public static <T> Optional<T> convertJsonToObject(
+            String jsonString,
+            Class<T> clazz) {
+        return convertJsonToObject(jsonString, clazz, objectMapper);
+    }
+
+    public static <T> Optional<T> convertJsonToObject(
+            String jsonString,
+            Class<T> clazz,
+            ObjectMapper objectMapper) {
+        try {
+            T loadedQuiz = objectMapper.readValue(jsonString, clazz);
+            return Optional.of(loadedQuiz);
+        } catch (IOException e) {
+            log.error("Failed to load quiz from String: {}", jsonString, e);
             return Optional.empty();
         }
     }
