@@ -33,6 +33,8 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.shell:spring-shell-starter")
+    // this is required to run on Windows
+    implementation("org.springframework.shell:spring-shell-starter-jna")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 

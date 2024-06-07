@@ -22,7 +22,7 @@ public class ErrorLoggingService {
     public void logErrorWithString(Throwable throwable, String message) {
         String fileName = "%s%srogue-%s.txt".formatted(
                 rogueDir,
-                File.pathSeparator,
+                File.separator,
                 LocalDateTime.now().format(FORMATTER)
         );
         FileUtils.writeStringToFile(fileName, STR."""

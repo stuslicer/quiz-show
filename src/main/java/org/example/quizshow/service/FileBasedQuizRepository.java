@@ -70,13 +70,14 @@ public class FileBasedQuizRepository implements QuizRepository {
     }
 
     private Optional<Quiz> convertJsonToQuiz(File jsonFile) {
-        try {
-            Quiz loadedQuiz = objectMapper.readValue(jsonFile, Quiz.class);
-            return Optional.of(loadedQuiz);
-        } catch (IOException e) {
-            log.error("Failed to load quiz from file: {}", jsonFile.getAbsolutePath(), e);
-            return Optional.empty();
-        }
+        return JsonUtils.convertJsonToObject(jsonFile, Quiz.class);
+//        try {
+//            Quiz loadedQuiz = objectMapper.readValue(jsonFile, Quiz.class);
+//            return Optional.of(loadedQuiz);
+//        } catch (IOException e) {
+//            log.error("Failed to load quiz from file: {}", jsonFile.getAbsolutePath(), e);
+//            return Optional.empty();
+//        }
     }
 
     @Override

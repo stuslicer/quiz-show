@@ -63,43 +63,50 @@ public class ShellUtils {
      *
      * Follows the builder pattern to simplify the addition of colour, style and automatically flushing of writer's stream.
      */
-    public static class Writer {
+    public static class TerminalWriter {
         private final CommandContext ctx;
         private String text;
         private boolean flush = true;
         private Function<String, Function<AttributedStyle, String>> colourText;
         private AttributedStyle style = AttributedStyle.DEFAULT.foreground(AttributedStyle.BLACK);
 
-        private Writer(CommandContext ctx) {
+        private TerminalWriter(CommandContext ctx) {
             this.ctx = ctx;
         }
 
-        public static Writer with(CommandContext ctx) {
+        public static TerminalWriter writeWith(CommandContext ctx) {
             Assert.notNull(ctx, "CommandContext must not be null");
-            Writer writer = new Writer(ctx);
+            TerminalWriter writer = new TerminalWriter(ctx);
             return writer;
         }
 
-        public Writer text(String text) {
+        public TerminalWriter text(String text) {
             Assert.notNull(text, "Text must not be null");
             this.text = text;
             return this;
         }
 
-        public Writer as(Function<String, Function<AttributedStyle, String>> colourText) {
+        public TerminalWriter as(Function<String, Function<AttributedStyle, String>> colourText) {
             this.colourText = colourText;
             return this;
         }
 
-        public Writer style(AttributedStyle style) {
+        public TerminalWriter as(Function<String, Function<AttributedStyle, String>> colourText,
+                                 AttributedStyle style) {
+            this.colourText = colourText;
             this.style = style;
             return this;
         }
 
-        public Writer flush() {
+        public TerminalWriter style(AttributedStyle style) {
+            this.style = style;
+            return this;
+        }
+
+        public TerminalWriter flush() {
             return flush(true);
         }
-        public Writer flush(boolean flush) {
+        public TerminalWriter flush(boolean flush) {
             this.flush = flush;
             return this;
         }
@@ -112,6 +119,16 @@ public class ShellUtils {
         public void write() {
             String toPrint = this.colourText != null ? this.colourText.apply(text).apply(style) : text;
             this.ctx.getTerminal().writer().println(toPrint);
+            if( this.flush ) {
+                ctx.getTerminal().writer().flush();
+            }
+        }
+
+        /**
+         * Convenience method to write out a newline
+         */
+        public void writeNewLine() {
+            this.ctx.getTerminal().writer().println("\n");
             if( this.flush ) {
                 ctx.getTerminal().writer().flush();
             }

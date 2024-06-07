@@ -2,7 +2,9 @@ package org.example.quizshow.shell;
 
 
 import org.example.quizshow.model.Quiz;
+import org.example.quizshow.model.QuizResult;
 import org.example.quizshow.runner.QuizRunner;
+import org.example.quizshow.service.QuizResultRepository;
 import org.example.quizshow.service.QuizService;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,17 +18,19 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.example.quizshow.shell.ShellUtils.*;
-import static org.example.quizshow.shell.ShellUtils.withColour;
+import static org.example.quizshow.shell.ShellUtils.TerminalWriter.*;
 
 @Component
 @Command
 public class QuizCommands {
 
     private final QuizService quizService;
+    private final QuizResultRepository quizResultRepository;
 
     @Autowired
-    public QuizCommands(QuizService quizService) {
+    public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository) {
         this.quizService = quizService;
+        this.quizResultRepository = quizResultRepository;
     }
 
     @Command(description = "List all available quizzes")
@@ -48,11 +52,10 @@ public class QuizCommands {
         if( filter != null && !filter.isEmpty()) {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
-
         quizList.forEach( quiz -> {
-            Writer.with(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original()).flush(false).write();
+            writeWith(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original()).flush(false).write();
         });
-        Writer.with(ctx).justFlush();
+        writeWith(ctx).justFlush();
     }
 
     @Command(description = "Runs a quiz")
@@ -68,7 +71,11 @@ public class QuizCommands {
 
         if (quizOptional.isPresent()) {
             QuizRunner runner = new QuizRunner(ctx);
-            runner.run(quizOptional.get());
+
+            QuizResult quizResult = runner.run(quizOptional.get());
+            // TODO - move to QuizSerivice!
+            quizResultRepository.addResult(quizResult);
+
         }
 
     }
@@ -86,11 +93,11 @@ public class QuizCommands {
                     defaultValue = "10"
             ) int numOfQuestions) {
 
-        Writer.with(ctx).as(magenta).text("Generating quiz... this may take a while").write();
+        writeWith(ctx).as(magenta).text("Generating quiz... this may take a while").write();
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        Writer.with(ctx).as(magenta).style(AttributedStyle.BOLD).text("Quiz generated!").write();
+        writeWith(ctx).as(magenta).style(AttributedStyle.BOLD).text("Quiz generated!").write();
     }
 
 
