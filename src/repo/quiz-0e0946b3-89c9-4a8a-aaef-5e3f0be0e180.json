@@ -1,0 +1,194 @@
+{
+  "id": "0e0946b3-89c9-4a8a-aaef-5e3f0be0e180",
+  "name": "stream collectors",
+  "description": "stream collectors",
+  "difficulty": "simple",
+  "tags": [],
+  "aiPromptUsed": null,
+  "generatedOn": "2024-06-05T09:29:36.0344289",
+  "lastUpdatedOn": "2024-06-05T09:29:36.0434299",
+  "questions": [
+    {
+      "number": 1,
+      "text": "Which Collector method is used to collect Stream elements into a List?",
+      "options": [
+        {
+          "text": "Collectors.toList()",
+          "isCorrect": true,
+          "explanation": "Collectors.toList() accumulates the input elements into a new List."
+        },
+        {
+          "text": "Collectors.toSet()",
+          "isCorrect": false,
+          "explanation": "Collectors.toSet() accumulates the input elements into a new Set, not a List."
+        },
+        {
+          "text": "Collectors.toMap()",
+          "isCorrect": false,
+          "explanation": "Collectors.toMap() is used for accumulating elements into a Map, not a List."
+        },
+        {
+          "text": "Collectors.groupingBy()",
+          "isCorrect": false,
+          "explanation": "Collectors.groupingBy() is used for grouping elements by some criteria, not collecting them into a List."
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "text": "What does Collectors.groupingBy() do?",
+      "options": [
+        {
+          "text": "Groups elements based on a classifier function.",
+          "isCorrect": true,
+          "explanation": "Collectors.groupingBy() groups elements of the stream by a classifier function into a Map."
+        },
+        {
+          "text": "Converts elements into a Map based on key and value functions.",
+          "isCorrect": false,
+          "explanation": "This is the functionality of Collectors.toMap()."
+        },
+        {
+          "text": "Reduces elements into a single value.",
+          "isCorrect": false,
+          "explanation": "Reduction is typically performed by Collectors.reducing()."
+        },
+        {
+          "text": "Sorts elements into a List.",
+          "isCorrect": false,
+          "explanation": "Sorting is not done by Collectors.groupingBy(); it just groups elements."
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "text": "What is the purpose of Collectors.joining()?",
+      "options": [
+        {
+          "text": "To join Stream elements into a single String.",
+          "isCorrect": true,
+          "explanation": "Collectors.joining() concatenates the input elements, optionally separated by a delimiter, into a single String."
+        },
+        {
+          "text": "To merge multiple Collections into one.",
+          "isCorrect": false,
+          "explanation": "Joining in this context is specifically about strings, not general collections."
+        },
+        {
+          "text": "To find the smallest element in the Stream.",
+          "isCorrect": false,
+          "explanation": "Finding the smallest element is typically done with min() method on Stream."
+        },
+        {
+          "text": "To group elements by their hash codes.",
+          "isCorrect": false,
+          "explanation": "Grouping by hash code is not a typical use case for Collectors.joining()."
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "text": "Which Collector can be used to create a Map from a Stream of objects based on a key function and a value function?",
+      "options": [
+        {
+          "text": "Collectors.toMap()",
+          "isCorrect": true,
+          "explanation": "Collectors.toMap() creates a Map from a Stream by applying key and value functions."
+        },
+        {
+          "text": "Collectors.toList()",
+          "isCorrect": false,
+          "explanation": "Collectors.toList() collects elements into a List, not a Map."
+        },
+        {
+          "text": "Collectors.groupingBy()",
+          "isCorrect": false,
+          "explanation": "While groupingBy() does create a Map, it's used for grouping, not mapping key-value pairs directly."
+        },
+        {
+          "text": "Collectors.partitioningBy()",
+          "isCorrect": false,
+          "explanation": "Collectors.partitioningBy() partitions elements into two groups, not a key-value Map."
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "text": "What is the result of using Collectors.counting()?",
+      "options": [
+        {
+          "text": "Returns the count of elements in the Stream.",
+          "isCorrect": true,
+          "explanation": "Collectors.counting() simply counts the number of elements in the stream."
+        },
+        {
+          "text": "Calculates the sum of elements in the Stream.",
+          "isCorrect": false,
+          "explanation": "Counting is not summing; for summing, use something like reducing with a sum operation."
+        },
+        {
+          "text": "Converts each element to a String and concatenates them.",
+          "isCorrect": false,
+          "explanation": "This describes the functionality of Collectors.joining(), not counting."
+        },
+        {
+          "text": "Groups elements by their natural order.",
+          "isCorrect": false,
+          "explanation": "Collectors.counting() does not involve sorting or ordering elements."
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "text": "How does Collectors.partitioningBy() differ from Collectors.groupingBy()?",
+      "options": [
+        {
+          "text": "partitioningBy() splits the input elements into two groups based on a Predicate.",
+          "isCorrect": true,
+          "explanation": "Collectors.partitioningBy() uses a Predicate to divide the stream into two groups (true or false), unlike groupingBy, which can create more groups based on keys."
+        },
+        {
+          "text": "partitioningBy() does not use a Predicate.",
+          "isCorrect": false,
+          "explanation": "partitioningBy() specifically requires a Predicate to function."
+        },
+        {
+          "text": "partitioningBy() collects elements into a List.",
+          "isCorrect": false,
+          "explanation": "While partitioningBy() results in a Map<Boolean, List<T>>, it's the Predicate that characterizes its functionality, not just collecting into Lists."
+        },
+        {
+          "text": "partitioningBy() sorts the elements before grouping.",
+          "isCorrect": false,
+          "explanation": "Sorting is not a part of what partitioningBy() does."
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "text": "What does Collectors.reducing() do?",
+      "options": [
+        {
+          "text": "Performs a reduction on the elements of the stream.",
+          "isCorrect": true,
+          "explanation": "Collectors.reducing() applies a binary operator to combine all elements of the stream into a single result."
+        },
+        {
+          "text": "Converts elements into a Map.",
+          "isCorrect": false,
+          "explanation": "Reducing is about combining elements, not about mapping them."
+        },
+        {
+          "text": "Groups elements into sublists based on some criteria.",
+          "isCorrect": false,
+          "explanation": "This is more aligned with groupingBy() than reducing()."
+        },
+        {
+          "text": "Partitions the stream into smaller streams.",
+          "isCorrect": false,
+          "explanation": "Reducing involves combining, not partitioning or dividing into smaller streams."
+        }
+      ]
+    }
+  ]
+}

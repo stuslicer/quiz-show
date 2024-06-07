@@ -1,0 +1,144 @@
+{
+  "id": "f3938b67-d690-41e5-8112-ca357d18a1a9",
+  "name": "wrapper classes",
+  "description": "wrapper classes",
+  "difficulty": "simple",
+  "tags": [],
+  "aiPromptUsed": "wrapper classes",
+  "aiEngine": "openAI",
+  "model": "GPT_4_TURBO",
+  "generatedOn": "2024-06-06T10:47:43.2281155",
+  "lastUpdatedOn": "2024-06-06T10:47:43.2321165",
+  "questions": [
+    {
+      "number": 1,
+      "text": "Which of the following statements is true about Java wrapper classes?",
+      "options": [
+        {
+          "text": "Wrapper classes can be instantiated using new operator only.",
+          "isCorrect": false,
+          "explanation": "Wrapper classes can be instantiated using new operator and also using valueOf method."
+        },
+        {
+          "text": "All wrapper classes are final and immutable.",
+          "isCorrect": true,
+          "explanation": "All wrapper classes in java.lang such as Integer, Double, Character, Boolean are final and immutable, meaning once their value is assigned, it cannot be changed."
+        },
+        {
+          "text": "Wrapper classes do not provide any utility methods.",
+          "isCorrect": false,
+          "explanation": "Wrapper classes provide utility methods such as parseXXX, valueOf, and methods to convert values to different types."
+        },
+        {
+          "text": "Wrapper classes store values in a special memory area called 'Wrapper pool'.",
+          "isCorrect": false,
+          "explanation": "There is no specific 'Wrapper pool'. However, some classes like Integer and Long cache frequently used instances."
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "text": "What is the output of the following code snippet? \n\n Integer a = 100;\n Integer b = 100;\n System.out.println(a == b);",
+      "options": [
+        {
+          "text": "True",
+          "isCorrect": true,
+          "explanation": "Java caches Integer objects between -128 and 127, so 'a' and 'b' point to the same object, making the expression true."
+        },
+        {
+          "text": "False",
+          "isCorrect": false,
+          "explanation": "This is false for Integer values outside the range -128 to 127, but in this case, the value is within the range."
+        },
+        {
+          "text": "Compilation error",
+          "isCorrect": false,
+          "explanation": "This code compiles and runs fine, it does not produce a compilation error."
+        },
+        {
+          "text": "Runtime exception",
+          "isCorrect": false,
+          "explanation": "The code runs without any exceptions."
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "text": "Which method is used to convert a string to an integer in Java?",
+      "options": [
+        {
+          "text": "Integer.parseInt",
+          "isCorrect": true,
+          "explanation": "Integer.parseInt converts a string to a primitive int. It's the correct method for converting a String to an int."
+        },
+        {
+          "text": "Integer.toString",
+          "isCorrect": false,
+          "explanation": "Integer.toString is used to convert an integer to a String, not the other way around."
+        },
+        {
+          "text": "String.valueOf",
+          "isCorrect": false,
+          "explanation": "String.valueOf converts various types to String, not from String."
+        },
+        {
+          "text": "Integer.valueOf",
+          "isCorrect": false,
+          "explanation": "While Integer.valueOf can also convert a string to an Integer object, the question specifically asks about converting to a primitive int."
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "text": "What will happen when the following code is executed? \n\n Double d = new Double(\"NaN\");\n System.out.println(d.isNaN());",
+      "options": [
+        {
+          "text": "It will always print true.",
+          "isCorrect": true,
+          "explanation": "\"NaN\" stands for 'Not a Number', and Double's isNaN method checks whether the Double object contains the value NaN."
+        },
+        {
+          "text": "It will always print false.",
+          "isCorrect": false,
+          "explanation": "Since the Double object is initialized with \"NaN\", d.isNaN() will return true."
+        },
+        {
+          "text": "It will throw a NumberFormatException.",
+          "isCorrect": false,
+          "explanation": "\"NaN\" is a valid string representation for a Double."
+        },
+        {
+          "text": "It will throw a NullPointerException.",
+          "isCorrect": false,
+          "explanation": "There is no null being used here; hence, no NullPointerException will be thrown."
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "text": "Which of the following correctly creates an instance of a Character object?",
+      "options": [
+        {
+          "text": "Character ch = new Character('a');",
+          "isCorrect": false,
+          "explanation": "This is technically correct, but as of Java 9, this constructor is deprecated."
+        },
+        {
+          "text": "Character ch = Character.valueOf('a');",
+          "isCorrect": true,
+          "explanation": "Character.valueOf is the preferred way to create a Character object as it may help in saving memory through caching."
+        },
+        {
+          "text": "Character.toLowerCase('A');",
+          "isCorrect": false,
+          "explanation": "This creates a primitive char, not a Character object."
+        },
+        {
+          "text": "Character ch = Character.parseCharacter('a');",
+          "isCorrect": false,
+          "explanation": "There is no method parseCharacter in the Character class."
+        }
+      ]
+    }
+  ]
+}

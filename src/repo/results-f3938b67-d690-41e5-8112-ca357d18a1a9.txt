@@ -1,0 +1,3 @@
+{"quizId":"f3938b67-d690-41e5-8112-ca357d18a1a9","totalQuestions":5,"correctAnswers":2,"startTime":"2024-06-07T14:54:24.7545032","endTime":"2024-06-07T14:54:24.7545032"}
+{"quizId":"f3938b67-d690-41e5-8112-ca357d18a1a9","totalQuestions":5,"correctAnswers":3,"startTime":"2024-06-07T14:56:20.7135565","endTime":"2024-06-07T14:56:20.7135565"}
+{"quizId":"f3938b67-d690-41e5-8112-ca357d18a1a9","totalQuestions":5,"correctAnswers":1,"startTime":"2024-06-07T14:57:56.2818494","endTime":"2024-06-07T14:57:56.2818494"}
