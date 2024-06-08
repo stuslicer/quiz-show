@@ -5,6 +5,8 @@ import org.jline.utils.AttributedStyle;
 import org.springframework.shell.command.CommandContext;
 import org.springframework.util.Assert;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.function.Function;
 
 public class ShellUtils {
@@ -141,4 +143,10 @@ public class ShellUtils {
             ctx.getTerminal().writer().flush();
         }
     }
+
+    public static double round(double d, int scale) {
+        BigDecimal bd = BigDecimal.valueOf(d).setScale(scale, RoundingMode.HALF_DOWN);
+        return bd.doubleValue();
+    }
+
 }

@@ -7,7 +7,6 @@ import org.example.quizshow.model.QuizResultSummary;
 import org.example.quizshow.runner.QuizRunner;
 import org.example.quizshow.service.QuizResultRepository;
 import org.example.quizshow.service.QuizService;
-import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.command.CommandContext;
 import org.springframework.shell.command.CommandRegistration;
@@ -15,11 +14,15 @@ import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.FormatProcessor.FMT;
 import static org.example.quizshow.shell.ShellUtils.*;
 import static org.example.quizshow.shell.ShellUtils.TerminalWriter.*;
+import static org.jline.utils.AttributedStyle.*;
 
 @Component
 @Command
@@ -49,11 +52,11 @@ public class QuizCommands {
                     defaultValue = "false",
                     arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats) {
 
-        record QuizDetails(String quizId, String original, String lowercase, QuizResultSummary summary) {};
+        record QuizDetails(String quizId, String original, String lowercase, LocalDateTime created, QuizResultSummary summary) {};
 
         List<QuizDetails> quizList = quizService.getAllQuizzes()
                 .stream()
-                .map(q -> new QuizDetails( q.getId(),q.getName(), q.getName().toLowerCase(),
+                .map(q -> new QuizDetails( q.getId(),q.getName(), q.getName().toLowerCase(), q.getGeneratedOn(),
                         withStats ? quizService.getQuizResultSummary(q.getId()).orElse(null) : null) )
                 .toList();
 
@@ -61,10 +64,23 @@ public class QuizCommands {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
         quizList.forEach( quiz -> {
-            String stats = quiz.summary() != null ? quiz.summary().toString() : "";
-            writeWith(ctx).as(green).style(AttributedStyle.BOLD).text( quiz.original() + stats).flush(false).write();
+            String stats = STR.", \{formatQuizResultSummary(quiz.summary())}";
+            writeWith(ctx).as(green, BOLD).text( quiz.original() + stats).flush(false).write();
         });
         writeWith(ctx).justFlush();
+    }
+
+
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, d MMM");
+
+    private String formatQuizResultSummary(QuizResultSummary summary) {
+        return summary != null ? FMT."""
+            \{summary.lastPlayed().format(formatter)}, \
+            %3d\{summary.count()} \
+            %3d\{summary.perfect()} \
+            %3.2f\{summary.averageSuccessRate()} \
+            %3.2f\{summary.averageTime()} \
+            """  : "";
     }
 
     @Command(description = "Runs a quiz")
@@ -132,7 +148,7 @@ public class QuizCommands {
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        writeWith(ctx).as(magenta).style(AttributedStyle.BOLD).text("Quiz generated!").write();
+        writeWith(ctx).as(magenta).style(BOLD).text("Quiz generated!").write();
     }
 
 

@@ -11,6 +11,7 @@ import org.example.quizshow.model.QuizResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,6 +82,7 @@ public class QuizService {
         private double timeMean;
         private double successPercentageMean;
         private double successSumOfSquares;
+        private LocalDateTime lastPlayed;
 
         public void append(QuizResult quizResult) {
             this.quizId = quizResult.quizId();
@@ -91,6 +93,7 @@ public class QuizService {
             double successDelta = quizResult.getSuccessPercentage() - successPercentageMean;
             successPercentageMean += successDelta / count;
             successSumOfSquares += successDelta * successDelta;
+            lastPlayed = lastPlayed == null ? LocalDateTime.now() : lastPlayed.isBefore(quizResult.endTime()) ? quizResult.endTime() : lastPlayed;
         }
 
         public Optional<QuizResultSummary> getSummary() {
@@ -100,7 +103,8 @@ public class QuizService {
                             count,
                             perfect,
                             successPercentageMean,
-                            timeMean
+                            timeMean,
+                            lastPlayed
                     )) : Optional.empty();
         }
     }
