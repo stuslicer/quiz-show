@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.FormatProcessor.FMT;
 import static org.example.quizshow.shell.ShellUtils.*;
@@ -50,33 +51,38 @@ public class QuizCommands {
                     required = false,
                     description = "show stats for quiz runs",
                     defaultValue = "false",
-                    arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats) {
+                    arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats
+    ) {
 
-        record QuizDetails(String quizId, String original, String lowercase, LocalDateTime created, QuizResultSummary summary) {};
+        record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
 
+        final AtomicInteger quizCounter = new AtomicInteger(1);
         List<QuizDetails> quizList = quizService.getAllQuizzes()
                 .stream()
-                .map(q -> new QuizDetails( q.getId(),q.getName(), q.getName().toLowerCase(), q.getGeneratedOn(),
+                .map(q -> new QuizDetails( quizCounter.getAndIncrement(), q.getName().toLowerCase(), q,
                         withStats ? quizService.getQuizResultSummary(q.getId()).orElse(null) : null) )
                 .toList();
 
         if( filter != null && !filter.isEmpty()) {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
-        quizList.forEach( quiz -> {
-            String stats = STR.", \{formatQuizResultSummary(quiz.summary())}";
-            writeWith(ctx).as(green, BOLD).text( quiz.original() + stats).flush(false).write();
+        quizList.forEach( details -> {
+            writeWith(ctx).as(green, BOLD).text( formatQuizDisplay(details.num, details.quiz, details.summary)).flush(false).write();
         });
         writeWith(ctx).justFlush();
     }
 
+    private String formatQuizDisplay(int number, Quiz quiz, QuizResultSummary summary) {
+        String stats = STR.", \{formatQuizResultSummary(summary)}";
+        return FMT."%3s\{number}. \{quiz.getName()}, created: \{quiz.getGeneratedOn().format(formatter)}\{stats}";
+    }
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, d MMM");
 
     private String formatQuizResultSummary(QuizResultSummary summary) {
         return summary != null ? FMT."""
-            \{summary.lastPlayed().format(formatter)}, \
-            %3d\{summary.count()} \
+            last played: \{summary.lastPlayed().format(formatter)}, \
+            stats: %3d\{summary.count()} \
             %3d\{summary.perfect()} \
             %3.2f\{summary.averageSuccessRate()} \
             %3.2f\{summary.averageTime()} \
@@ -142,7 +148,8 @@ public class QuizCommands {
                     shortNames = 'n',
                     description = "Number of questions for the quiz",
                     defaultValue = "10"
-            ) int numOfQuestions) {
+            ) int numOfQuestions
+    ) {
 
         writeWith(ctx).as(magenta).text("Generating quiz... this may take a while").write();
 
