@@ -1,6 +1,9 @@
 package org.example.quizshow.shell;
 
 
+import org.example.quizshow.event.EventQueue;
+import org.example.quizshow.event.QuizEvent;
+import org.example.quizshow.event.QuizGeneratedEvent;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizResult;
 import org.example.quizshow.model.QuizResultSummary;
@@ -14,7 +17,6 @@ import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +34,7 @@ public class QuizCommands {
     /**
      * QuizDetails represents the details of a quiz, including the number, lowercase name, quiz object, and quiz result summary.
      */
-    record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
+    private record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
 
     /**
      * Result is a generic class representing a result that can have a value or an error message.
@@ -51,14 +53,18 @@ public class QuizCommands {
 
     private final QuizService quizService;
     private final QuizResultRepository quizResultRepository;
+    private final AsynchronousQuizGenerator asyncQuizGenerator;
+    private final EventQueue eventQueue;
 
     private int pageSize = 100;
     private PagedList<QuizDetails> quizDetailsPagedList;
 
     @Autowired
-    public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository) {
+    public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository, AsynchronousQuizGenerator asyncQuizGenerator, EventQueue eventQueue) {
         this.quizService = quizService;
         this.quizResultRepository = quizResultRepository;
+        this.asyncQuizGenerator = asyncQuizGenerator;
+        this.eventQueue = eventQueue;
     }
 
     @Command(description = "List all available quizzes")
@@ -76,6 +82,8 @@ public class QuizCommands {
                     defaultValue = "false",
                     arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats
     ) {
+
+        handleAnyEvents(ctx);
 
         final AtomicInteger quizCounter = new AtomicInteger(1);
         List<QuizDetails> quizList = quizService.getAllQuizzes()
@@ -128,7 +136,7 @@ public class QuizCommands {
                     defaultValue = "false",
                     required = false) boolean dryRun
     ) {
-
+        handleAnyEvents(ctx);
         Result<Quiz> lookupResult = lookupQuiz(quizId, quizNumber);
         if( ! lookupResult.isPresent()) {
             writeWith(ctx).as(red).text(lookupResult.error).write();
@@ -166,6 +174,7 @@ public class QuizCommands {
                     description = "Run the given quiz using number",
                     required = false) int quizNumber
     ) {
+        handleAnyEvents(ctx);
         Result<Quiz> lookupResult = lookupQuiz(quizId, quizNumber);
         if( ! lookupResult.isPresent()) {
             writeWith(ctx).as(red).text(lookupResult.error).write();
@@ -189,14 +198,48 @@ public class QuizCommands {
                     shortNames = 'n',
                     description = "Number of questions for the quiz",
                     defaultValue = "10"
-            ) int numOfQuestions
+            ) int numOfQuestions,
+            @Option(longNames = "foreground",
+                    shortNames = 'f',
+                    description = "Generate the quiz in the foreground",
+                    defaultValue = "false"
+            ) boolean foreground
     ) {
 
-        writeWith(ctx).as(magenta).text("Generating quiz... this may take a while").write();
+        if( foreground ) {
+            writeWith(ctx).as(magenta).text("Generating quiz... this may take a while").write();
 
-        quizService.generateNewQuiz(prompt, numOfQuestions);
+            quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        writeWith(ctx).as(magenta, BOLD).text("Quiz generated!").write();
+            writeWith(ctx).as(magenta, BOLD).text("Quiz generated!").write();
+        } else {
+            writeWith(ctx).as(magenta).text("Generating quiz in background").write();
+
+            asyncQuizGenerator.generateNewQuiz(prompt, numOfQuestions);
+
+            writeWith(ctx).as(magenta, BOLD).text("Request submitted").write();
+        }
+
+    }
+
+    private void handleAnyEvents(CommandContext ctx) {
+        while (true) {
+            Optional<QuizEvent> event = eventQueue.dequeueEvent();
+            if( event.isEmpty()) {
+                break;
+            }
+            switch (event.get()) {
+                case QuizGeneratedEvent qe -> handleQuizGeneratedEvent(qe, ctx);
+            }
+        }
+    }
+
+    private void handleQuizGeneratedEvent(QuizGeneratedEvent quizGeneratedEvent, CommandContext ctx) {
+        Optional<Quiz> quizById = quizService.getQuizById(quizGeneratedEvent.getQuizId());
+        quizById.ifPresent(quiz ->
+                writeWith(ctx).as(magenta, BOLD).text(STR."Quiz generated for \{quiz.getName()}!").write()
+        );
+
     }
 
     /**

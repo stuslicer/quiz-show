@@ -64,8 +64,7 @@ public class QuizService {
                 new QuizGeneratorConfig(prompt, numberOfQuestions, QuizDifficulty.medium, quizConfig.defaultAiModel()));
         log.debug(STR."New quiz created: \{newQuiz}");
 
-        Quiz saved = quizRepository.saveQuiz(newQuiz);
-        return saved;
+        return quizRepository.saveQuiz(newQuiz);
 
     }
 

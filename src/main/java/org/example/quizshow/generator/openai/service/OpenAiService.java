@@ -28,7 +28,7 @@ public class OpenAiService {
         OpenAIRecords.ChatResponse chatResponse = openAiInterface.getChatResponse(
                 new OpenAIRecords.ChatRequest(model.getId(),
                         messages, temperature));
-        log.info(chatResponse);
+        log.trace(chatResponse);
         return chatResponse.choices().getFirst().message().content();
     }
 
