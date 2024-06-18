@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 @Log4j2
@@ -27,6 +29,13 @@ public class FileBasedQuizResultRepository implements QuizResultRepository {
 
     private final String baseDirectory;
     private final ObjectMapper objectMapper;
+    /**
+     * A Lock to control access to the shared resource of Quiz Summary files.
+     * This lock is implemented using the {@link ReentrantLock} class.
+     *
+     * @see ReentrantLock
+     */
+    private final Lock lock = new ReentrantLock();
 
     public FileBasedQuizResultRepository(
             @Value("${quiz.repository.dir:.}") String baseDirectory,
@@ -45,6 +54,7 @@ public class FileBasedQuizResultRepository implements QuizResultRepository {
             throw new RuntimeException(e);
         }
 
+        lock.lock();
         try {
             Files.write(Paths.get(baseDirectory, generateQuizResultFileName(result)),
                     List.of(resultsAsJson),
@@ -52,12 +62,14 @@ public class FileBasedQuizResultRepository implements QuizResultRepository {
                     StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
         }
-
     }
 
     @Override
     public List<QuizResult> getResultsForQuiz(String quizId) {
+        lock.lock();
         try (Stream<Path> paths = Files.list(Path.of(baseDirectory))) {
             return paths.filter(Files::isRegularFile)
                     .filter(f -> f.getFileName().toString().startsWith(STR."\{RESULT_FILE_PREFIX}\{quizId}"))
@@ -68,6 +80,8 @@ public class FileBasedQuizResultRepository implements QuizResultRepository {
                     .toList();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
         }
     }
 
