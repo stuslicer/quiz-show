@@ -8,6 +8,7 @@ import org.example.quizshow.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,9 +27,13 @@ public class AsynchronousQuizGenerator {
     }
 
     public void generateNewQuiz(String prompt, int numOfQuestions) {
-        executorService.submit(() -> {
-            Quiz quiz = quizService.generateNewQuiz(prompt, numOfQuestions);
-            eventQueue.enqueueEvent(new QuizGeneratedEvent(quiz.getId()));
-        });
+
+        CompletableFuture<Quiz> quizFuture = CompletableFuture.supplyAsync(() -> quizService.generateNewQuiz(prompt, numOfQuestions));
+        quizFuture.thenAccept(quiz -> eventQueue.enqueueEvent(new QuizGeneratedEvent(quiz.getId())));
+
+//        executorService.submit(() -> {
+//            Quiz quiz = quizService.generateNewQuiz(prompt, numOfQuestions);
+//            eventQueue.enqueueEvent(new QuizGeneratedEvent(quiz.getId()));
+//        });
     }
 }

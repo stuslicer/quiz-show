@@ -13,6 +13,8 @@ import org.example.quizshow.service.ErrorLoggingService;
 import org.example.quizshow.service.QuizConfigService;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -94,9 +96,18 @@ public class OpenAiQuizGenerator implements QuizGenerator {
         Message quizSubject = new Message(Role.USER,
                 STR."\{config.numberOfQuestions()} questions on \{config.prompt()}");
 
-        String response = openAiService.sendRequest(List.of(initialPrompt, quizSubject), config.aiModels(), 0.7);
-
-        return convertJsonToQuiz(jsonQuizExtractor.extractJsonForAiQuiz(response));
+        LocalDateTime start = LocalDateTime.now();
+        try {
+            String response = openAiService.sendRequest(List.of(initialPrompt, quizSubject), config.aiModels(), 0.7);
+            return convertJsonToQuiz(jsonQuizExtractor.extractJsonForAiQuiz(response));
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        } finally {
+            LocalDateTime end = LocalDateTime.now();
+            Duration duration = Duration.between(start, end);
+            log.debug(STR."Time taken to generate quiz: \{duration.toMillis()} ms");
+        }
     }
 
     private Quiz populateNewQuiz(QuizGeneratorConfig config, Quiz quiz) {

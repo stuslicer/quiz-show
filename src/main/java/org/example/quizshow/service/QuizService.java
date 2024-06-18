@@ -60,6 +60,7 @@ public class QuizService {
     }
 
     public Quiz generateNewQuiz(String prompt, int numberOfQuestions) {
+        log.debug("About to generate a new quiz!");
         Quiz newQuiz = quizGenerator.generateQuiz(
                 new QuizGeneratorConfig(prompt, numberOfQuestions, QuizDifficulty.medium, quizConfig.defaultAiModel()));
         log.debug(STR."New quiz created: \{newQuiz}");
