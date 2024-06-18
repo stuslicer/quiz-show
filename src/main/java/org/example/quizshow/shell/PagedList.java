@@ -1,6 +1,7 @@
 package org.example.quizshow.shell;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 
 /**
@@ -55,4 +56,35 @@ public class PagedList<T> {
         return this.list.subList(start, Math.min(start + pageSize, list.size()));
     }
 
+    /**
+     * Performs the given action for each element in the paged list.
+     * The action is applied to each element in the sublist of elements based on the current page and page size.
+     *
+     * @param action the action to be performed on each element
+     * @throws NullPointerException if the specified action is null
+     */
+    public void forEach(Consumer<? super T> action) {
+        Objects.requireNonNull(action);
+        for (T t : getList()) {
+            action.accept(t);
+        }
+    }
+
+    /**
+     * Returns the size of the paged list.
+     *
+     * @return the size of the paged list
+     */
+    public int size() {
+        return list.size();
+    }
+
+    /**
+     * Returns whether the paged list is empty or not.
+     *
+     * @return true if the paged list is empty, false otherwise
+     */
+    public boolean isEmpty() {
+        return list.isEmpty();
+    }
 }

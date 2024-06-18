@@ -44,7 +44,6 @@ public class QuizService {
         quizResultRepository.addResult(result);
     }
 
-
     public Optional<QuizResultSummary> getQuizResultSummary(String quizId) {
 
         List<QuizResult> resultsForQuiz = quizResultRepository.getResultsForQuiz(quizId);
@@ -59,7 +58,6 @@ public class QuizService {
 
         return collected.getSummary();
     }
-
 
     public Quiz generateNewQuiz(String prompt, int numberOfQuestions) {
         Quiz newQuiz = quizGenerator.generateQuiz(

@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.example.quizshow.model.Question;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizResult;
+import org.example.quizshow.shell.PagedList;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.utils.AttributedStyle;
@@ -45,9 +46,9 @@ public class QuizRunner {
 
         record OptionHolder(int number, QuestionOption option) {};
 
-        log.info("Quiz is running");
-
         List<Question> questions = new ArrayList<>(quiz.getQuestions());
+
+        writeWith(ctx).as(blue, AttributedStyle.BOLD).text(STR."Quiz is running - \{quiz.getName()}").write();
 
         final LocalDateTime startTime = LocalDateTime.now();
         int questionNumber = 1;

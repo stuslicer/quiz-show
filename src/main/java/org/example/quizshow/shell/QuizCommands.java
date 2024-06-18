@@ -29,8 +29,31 @@ import static org.jline.utils.AttributedStyle.*;
 @Command
 public class QuizCommands {
 
+    /**
+     * QuizDetails represents the details of a quiz, including the number, lowercase name, quiz object, and quiz result summary.
+     */
+    record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
+
+    /**
+     * Result is a generic class representing a result that can have a value or an error message.
+     * This is a concept from functional programming, where the value can represent either a successful operation or a failed
+     * operation - typically an exception or error messaage. By convention the left hand side represents a failure
+     * and right success.
+     *
+     * @param <T> the type of the value
+     */
+    private record Result<T>(T result, String error) {
+        public boolean isPresent() {
+            return result != null;
+        }
+    }
+
+
     private final QuizService quizService;
     private final QuizResultRepository quizResultRepository;
+
+    private int pageSize = 100;
+    private PagedList<QuizDetails> quizDetailsPagedList;
 
     @Autowired
     public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository) {
@@ -54,8 +77,6 @@ public class QuizCommands {
                     arity = CommandRegistration.OptionArity.ZERO_OR_ONE) boolean withStats
     ) {
 
-        record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
-
         final AtomicInteger quizCounter = new AtomicInteger(1);
         List<QuizDetails> quizList = quizService.getAllQuizzes()
                 .stream()
@@ -66,7 +87,8 @@ public class QuizCommands {
         if( filter != null && !filter.isEmpty()) {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
-        quizList.forEach( details -> {
+        quizDetailsPagedList = new PagedList<>(quizList, pageSize);
+        quizDetailsPagedList.forEach( details -> {
             writeWith(ctx).as(green, BOLD).text( formatQuizDisplay(details.num, details.quiz, details.summary)).flush(false).write();
         });
         writeWith(ctx).justFlush();
@@ -74,46 +96,59 @@ public class QuizCommands {
 
     private String formatQuizDisplay(int number, Quiz quiz, QuizResultSummary summary) {
         String stats = STR.", \{formatQuizResultSummary(summary)}";
-        return FMT."%3s\{number}. \{quiz.getName()}, created: \{quiz.getGeneratedOn().format(formatter)}\{stats}";
+        return FMT."%3s\{number}. \{quiz.getName()} (\{quiz.getQuestions().size()}), created: \{quiz.getGeneratedOn().format(formatter)}\{stats}";
     }
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, d MMM");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, d MMM");
 
     private String formatQuizResultSummary(QuizResultSummary summary) {
         return summary != null ? FMT."""
             last played: \{summary.lastPlayed().format(formatter)}, \
-            stats: %3d\{summary.count()} \
-            %3d\{summary.perfect()} \
-            %3.2f\{summary.averageSuccessRate()} \
-            %3.2f\{summary.averageTime()} \
+            stats - runs: %d\{summary.count()}, \
+            perfect: %d\{summary.perfect()}, \
+            avg success: %3.2f\{summary.averageSuccessRate()} %%, \
+            avg time: %3.2f\{summary.averageTime()} secs, \
             """  : "";
     }
 
-    @Command(description = "Runs a quiz")
+    @Command(description = "Run a quiz")
     public void run(
             CommandContext ctx,
             @Option(longNames = "quiz",
                     shortNames = 'q',
-                    description = "Run the given quiz",
-                    defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
-                    required = true) String quizId,
+                    description = "Run the given quiz using id",
+                    required = false) String quizId,
+            @Option(longNames = "number",
+                    shortNames = 'n',
+                    description = "Run the given quiz using number",
+                    required = false) int quizNumber,
             @Option(longNames = "dryRun",
                     shortNames = 'd',
                     description = "Dry run, don't save results",
                     defaultValue = "false",
                     required = false) boolean dryRun
     ) {
-        Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
 
-        if (quizOptional.isPresent()) {
-            QuizRunner runner = new QuizRunner(ctx, quizOptional.get());
+        Result<Quiz> lookupResult = lookupQuiz(quizId, quizNumber);
+        if( ! lookupResult.isPresent()) {
+            writeWith(ctx).as(red).text(lookupResult.error).write();
+            return;
+        }
+        Quiz quiz = lookupResult.result;
 
-            QuizResult quizResult = runner.run();
+        QuizRunner runner = new QuizRunner(ctx, quiz);
 
-            if( ! dryRun ) {
-                quizResultRepository.addResult(quizResult);
-                writeWith(ctx).text("Results written to history.");
-            }
+        QuizResult quizResult = runner.run();
+
+        if (!dryRun) {
+            quizResultRepository.addResult(quizResult);
+            writeWith(ctx).text("Results written to history.");
+        }
+
+        Optional<QuizResultSummary> quizResultSummary = quizService.getQuizResultSummary(quiz.getId());
+        if( quizResultSummary.isPresent()) {
+            String statsFormatted = formatQuizResultSummary(quizResultSummary.get());
+            writeWith(ctx).text(statsFormatted).write();
         }
 
     }
@@ -125,16 +160,22 @@ public class QuizCommands {
                     shortNames = 'q',
                     description = "Run the given quiz",
                     defaultValue = "f3938b67-d690-41e5-8112-ca357d18a1a9",
-                    required = true) String quizId
+                    required = false) String quizId,
+            @Option(longNames = "number",
+                    shortNames = 'n',
+                    description = "Run the given quiz using number",
+                    required = false) int quizNumber
     ) {
-        Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
-
-        if (quizOptional.isPresent()) {
-            Optional<QuizResultSummary> quizResultSummary = quizService.getQuizResultSummary(quizId);
-
-            writeWith(ctx).text(quizResultSummary.toString()).write();
+        Result<Quiz> lookupResult = lookupQuiz(quizId, quizNumber);
+        if( ! lookupResult.isPresent()) {
+            writeWith(ctx).as(red).text(lookupResult.error).write();
+            return;
         }
+        Quiz quiz = lookupResult.result;
 
+        Optional<QuizResultSummary> quizResultSummary = quizService.getQuizResultSummary(quiz.getId());
+
+        writeWith(ctx).text(quizResultSummary.toString()).write();
     }
 
     @Command(description = "Generate a new quiz")
@@ -155,8 +196,31 @@ public class QuizCommands {
 
         quizService.generateNewQuiz(prompt, numOfQuestions);
 
-        writeWith(ctx).as(magenta).style(BOLD).text("Quiz generated!").write();
+        writeWith(ctx).as(magenta, BOLD).text("Quiz generated!").write();
     }
 
+    /**
+     * Looks up a quiz based on the provided ID or number.
+     *
+     * @param quizId      the ID of the quiz (optional)
+     * @param quizNumber  the number of the quiz (optional)
+     * @return a Result object containing the found Quiz or an error message
+     */
+    private Result<Quiz> lookupQuiz(String quizId, int quizNumber) {
+        if (quizId != null && !quizId.isEmpty()) {
+            Optional<Quiz> quizOptional = quizService.getQuizById(quizId);
+            return quizOptional.map(value -> new Result<>(value, null))
+                    .orElseGet(() -> new Result<>(null, "Quiz doesn't exist"));
 
+        } else if (quizNumber > 0) {
+            if( quizNumber > quizDetailsPagedList.size() ) {
+                return new Result<Quiz>(null, STR."Sorry but \{quizNumber} is too high!");
+            }
+            return new Result<>(quizDetailsPagedList.getList().get(quizNumber - 1).quiz(), null);
+
+        } else {
+            // enter something or else!
+            return new Result<Quiz>(null, "Please enter either an id or number to run");
+        }
+    }
 }
