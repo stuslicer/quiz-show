@@ -13,6 +13,8 @@ public record QuizConfig(
         // Default AiModel to use
         AiModels defaultAiModel,
 
-        List<AiModels> aiModelPreferredOrder
+        List<AiModels> aiModelPreferredOrder,
+
+        int pageSize
 ) {
 }

@@ -4,10 +4,12 @@ package org.example.quizshow.shell;
 import org.example.quizshow.event.EventQueue;
 import org.example.quizshow.event.QuizEvent;
 import org.example.quizshow.event.QuizGeneratedEvent;
+import org.example.quizshow.generator.QuizConfig;
 import org.example.quizshow.model.Quiz;
 import org.example.quizshow.model.QuizResult;
 import org.example.quizshow.model.QuizResultSummary;
 import org.example.quizshow.runner.QuizRunner;
+import org.example.quizshow.service.QuizConfigService;
 import org.example.quizshow.service.QuizResultRepository;
 import org.example.quizshow.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +20,12 @@ import org.springframework.shell.command.annotation.Option;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.FormatProcessor.FMT;
 import static org.example.quizshow.shell.ShellUtils.*;
@@ -35,6 +40,11 @@ public class QuizCommands {
      * QuizDetails represents the details of a quiz, including the number, lowercase name, quiz object, and quiz result summary.
      */
     private record QuizDetails(int num, String lowercase, Quiz quiz, QuizResultSummary summary) {};
+
+    private enum ListActions {
+        next, previous, page, nothing;
+    }
+
 
     /**
      * Result is a generic class representing a result that can have a value or an error message.
@@ -55,16 +65,18 @@ public class QuizCommands {
     private final QuizResultRepository quizResultRepository;
     private final AsynchronousQuizGenerator asyncQuizGenerator;
     private final EventQueue eventQueue;
+    private final QuizConfig quizConfig;
 
     private int pageSize = 100;
     private PagedList<QuizDetails> quizDetailsPagedList;
 
     @Autowired
-    public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository, AsynchronousQuizGenerator asyncQuizGenerator, EventQueue eventQueue) {
+    public QuizCommands(QuizService quizService, QuizResultRepository quizResultRepository, AsynchronousQuizGenerator asyncQuizGenerator, EventQueue eventQueue, QuizConfigService quizConfigService) {
         this.quizService = quizService;
         this.quizResultRepository = quizResultRepository;
         this.asyncQuizGenerator = asyncQuizGenerator;
         this.eventQueue = eventQueue;
+        this.quizConfig = quizConfigService.getQuizConfig();
     }
 
     @Command(description = "List all available quizzes")
@@ -95,11 +107,63 @@ public class QuizCommands {
         if( filter != null && !filter.isEmpty()) {
             quizList = quizList.stream().filter( q -> q.lowercase.contains(filter.toLowerCase())).toList();
         }
-        quizDetailsPagedList = new PagedList<>(quizList, pageSize);
+
+        quizDetailsPagedList = new PagedList<>(quizList, quizConfig.pageSize());
+        writeWith(ctx).text(formatPageDisplay(quizDetailsPagedList) + " quizzes").write();
         quizDetailsPagedList.forEach( details -> {
             writeWith(ctx).as(green, BOLD).text( formatQuizDisplay(details.num, details.quiz, details.summary)).flush(false).write();
         });
+
+        if( hasPreviousPage(quizDetailsPagedList)) {
+            writeWith(ctx).text("Can do Previous").write();
+        } else if( hasNextPage(quizDetailsPagedList)) {
+            writeWith(ctx).text("Can do Next").write();
+        }
         writeWith(ctx).justFlush();
+    }
+
+    /**
+     * Formats the page display based on the current page and page size of a paged list.
+     * Displays in the format:
+     * {@snippet :
+     *    Showing 1..6
+     *    Showing 1..10 of 16
+     * }
+     *
+     * @param list the paged list
+     * @return the formatted page display
+     */
+    private String formatPageDisplay(PagedList<?> list) {
+        if( list.currentPage() == 1 && list.size() <= list.pageSize()) {
+            // no need for paging information
+            // Showing 1..6
+            return STR."Showing \{list.currentPage()}..\{list.size()}";
+        } else {
+            return STR."Showing \{list.currentPage()}..\{list.currentPage() + list.pageSize() -1 } of \{list.size()}";
+        }
+    }
+
+    private Predicate<PagedList<?>> hasPreviousPagePred =
+            list -> list.currentPage() > 1;
+
+    /**
+     * Checks if there is a previous page in the given paged list.
+     *
+     * @param list the paged list
+     * @return true if there is a previous page, false otherwise
+     */
+    private boolean hasPreviousPage(PagedList<?> list) {
+        return list.currentPage() > 1;
+    }
+
+    /**
+     * Checks if there is a next page in the given paged list.
+     *
+     * @param list the paged list
+     * @return true if there is a next page, false otherwise
+     */
+    private boolean hasNextPage(PagedList<?> list) {
+        return (list.currentPage() + list.pageSize()) <= list.size();
     }
 
     private String formatQuizDisplay(int number, Quiz quiz, QuizResultSummary summary) {

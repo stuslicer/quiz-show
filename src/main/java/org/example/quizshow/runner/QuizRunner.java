@@ -132,7 +132,8 @@ public class QuizRunner {
         }
     };
 
-    private <T> T readAndValidate(String prompt, String invalidPrompt,
+    private <T> T readAndValidate(String prompt,
+                                  String invalidPrompt,
                                    Predicate<String> validator,
                                    Function<String, T> mapper) {
         String readLine = null;

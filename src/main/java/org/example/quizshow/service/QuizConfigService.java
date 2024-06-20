@@ -16,11 +16,14 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.beans.support.PagedListHolder.DEFAULT_PAGE_SIZE;
+
 @Log4j2
 @Service
 public class QuizConfigService {
 
     private static final String CONFIG_FILE_NAME = "config.json";
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     private final String configDir;
     private final ObjectMapper objectMapper;
@@ -101,7 +104,8 @@ public class QuizConfigService {
                         AiModels.GPT_4O,
                         AiModels.GPT_4,
                         AiModels.GPT_3_5_TURBO
-                ));
+                ),
+                DEFAULT_PAGE_SIZE);
     }
 
 }
