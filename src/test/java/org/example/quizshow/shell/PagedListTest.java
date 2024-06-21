@@ -19,12 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PagedListTest {
 
-    private List<Integer> commonList;
     private PagedList<Integer> commonPagedList;
 
     @BeforeEach
     void setUp() {
-        commonList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        List<Integer> commonList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         commonPagedList = new PagedList<>(commonList, 5);
     }
 
@@ -42,5 +41,27 @@ class PagedListTest {
     @Test
     void whenSetCurrentPageGreaterThanMax_thenThrowsException() {
         assertThrows(IllegalArgumentException.class, () -> commonPagedList.setCurrentPage(3));
+    }
+
+    @Test
+    void whenHasNextPageCalledAndCurrentPageIsOne_thenReturnTrue() {
+        assertTrue(commonPagedList.hasNextPage());
+    }
+
+    @Test
+    void whenHasNextPageCalledAndCurrentPageIsTwo_thenReturnFalse() {
+        commonPagedList.setCurrentPage(2);
+        assertFalse(commonPagedList.hasNextPage());
+    }
+
+    @Test
+    void whenHasPreviousPageCalledAndCurrentPageIsOne_thenReturnFalse() {
+        assertFalse(commonPagedList.hasPreviousPage());
+    }
+
+    @Test
+    void whenHasPreviousPageCalledAndCurrentPageIsGreaterThanOne_thenReturnTrue() {
+        commonPagedList.setCurrentPage(2);
+        assertTrue(commonPagedList.hasPreviousPage());
     }
 }

@@ -57,6 +57,15 @@ public class PagedList<T> {
     }
 
     /**
+     * Returns a new list that contains all the elements from the original list.
+     *
+     * @return a new list containing all the elements from the original list
+     */
+    public List<T> getFullList() {
+        return new ArrayList<>(this.list);
+    }
+
+    /**
      * Performs the given action for each element in the paged list.
      * The action is applied to each element in the sublist of elements based on the current page and page size.
      *
@@ -69,6 +78,29 @@ public class PagedList<T> {
             action.accept(t);
         }
     }
+
+    public int totalPages() {
+        return (int) Math.ceil((double) list.size() / pageSize);
+    }
+
+    /**
+     * Checks if there is a previous page.
+     *
+     * @return true if there is a previous page, false otherwise
+     */
+    public boolean hasPreviousPage() {
+        return this.currentPage > 1;
+    }
+
+    /**
+     * Checks if there is a next page.
+     *
+     * @return true if there is a next page, false otherwise
+     */
+    public boolean hasNextPage() {
+        return this.currentPage < totalPages();
+    }
+
 
     /**
      * Returns the size of the paged list.

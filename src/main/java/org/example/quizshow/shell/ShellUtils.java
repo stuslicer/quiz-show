@@ -22,6 +22,7 @@ public class ShellUtils {
      * This function takes an integer representing the colour, a string representing the text, and an AttributedStyle object
      * representing the style, and returns the formatted text as a string.
      *
+     * {@snippet :
      * Usage:
      * Function<Integer, Function<String, Function<AttributedStyle, String>>> baseFunction =
      *         colour -> text -> style -> {
@@ -36,6 +37,7 @@ public class ShellUtils {
      * AttributedStyle style = AttributedStyle.DEFAULT.foreground(AttributedStyle.RED);
      * String formattedText = baseFunction.apply(255).apply("Hello").apply(style);
      * System.out.println(formattedText);
+     * }
      *
      * Output: Hello (coloured and styled according to the provided colour and style)
      */

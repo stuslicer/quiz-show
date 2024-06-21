@@ -136,9 +136,8 @@ public class QuizRunner {
                                   String invalidPrompt,
                                    Predicate<String> validator,
                                    Function<String, T> mapper) {
-        String readLine = null;
         while (true) {
-            readLine = lineReader.readLine(prompt);
+            String readLine = lineReader.readLine(prompt);
             if( validator.test(readLine) ) {
                 return mapper.apply(readLine);
             }
