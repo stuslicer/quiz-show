@@ -18,8 +18,7 @@ public class LongestWordsInShakespeare {
 
         log.info("Running findMostFrequentWord02 in thread {}", Thread.currentThread().getName());
         TreeMap<Integer, List<String>> results = ShakespeareLoader.getWorksAsWords()
-                .collect(Collectors.toSet()) // dedup words
-                .stream()
+                .distinct()
                 .map(w -> new WordLength(w, w.length()))
                 .sorted(Comparator.comparing(WordLength::length).thenComparing(WordLength::word))
                 .collect( Collectors.groupingBy(WordLength::length,
