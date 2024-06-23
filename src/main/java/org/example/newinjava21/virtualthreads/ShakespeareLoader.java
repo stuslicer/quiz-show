@@ -14,8 +14,8 @@ public class ShakespeareLoader {
     private static final String FILE_PATH = "./src/main/resources/some_works_of_shakespeare.txt";
 
     public static Stream<String> getWorksAsLines() {
-        try {
-            return Files.lines(Path.of(FILE_PATH))
+        try (var stream = Files.lines(Path.of(FILE_PATH))) {
+            return stream
                     .map(String::trim)
                     .filter(StringUtils::hasText)
                     .filter(StringUtils::hasLength)

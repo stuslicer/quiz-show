@@ -16,6 +16,25 @@ public class LongestWordsInShakespeare {
 
         record WordLength(String word, int length) {};
 
+        TreeMap<Integer, List<String>> results = ShakespeareLoader.getWorksAsWords()
+                .distinct()
+                .collect( Collectors.groupingBy(String::length,
+                        TreeMap::new,
+                        Collectors.toList()) )
+                ;
+        Map.Entry<Integer, List<String>> lastEntry = results.lastEntry();
+        log.info(results.keySet());
+        log.info(results.floorKey(17));
+        log.info(results.ceilingKey(17));
+        log.info(results.lowerEntry(16));
+        log.info(lastEntry);
+        return lastEntry.getValue();
+    }
+
+    private static List<String> findLongestWord01() {
+
+        record WordLength(String word, int length) {};
+
         log.info("Running findMostFrequentWord02 in thread {}", Thread.currentThread().getName());
         TreeMap<Integer, List<String>> results = ShakespeareLoader.getWorksAsWords()
                 .distinct()
@@ -29,7 +48,7 @@ public class LongestWordsInShakespeare {
         log.info(results.keySet());
         log.info(results.floorKey(17));
         log.info(results.ceilingKey(17));
-        log.info(results.lowerKey(17));
+        log.info(results.lowerEntry(16));
         log.info(lastEntry);
         return lastEntry.getValue();
     }
