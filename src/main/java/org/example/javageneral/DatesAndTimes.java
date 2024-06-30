@@ -54,15 +54,12 @@ public class DatesAndTimes {
         System.out.printf("Mins: %s\n", timedDuration.toMinutesPart());
         System.out.printf("Secs: %s\n", timedDuration.toSecondsPart());
 
-        displayDurationAsString(timedDuration);
+        System.out.println(displayDurationAsString(timedDuration));
 
         TimerRecord<Boolean> timed = timer(() -> {
             doWork(2_000);
             return Boolean.TRUE;
         });
-
-        System.out.println("Units for duration:");
-        timedDuration.getUnits().forEach(System.out::println);
 
         LocalDateTime.now().plus(timedDuration);
 
@@ -77,6 +74,8 @@ public class DatesAndTimes {
 
         System.out.println("isSuccessful: " + failedTimed.isSuccessful());
         System.out.println(failedTimed.<String>map(b -> b.toString()));
+
+        String wibble = "Time";
 
     }
 
@@ -118,13 +117,21 @@ public class DatesAndTimes {
                 .forEach(System.out::println);
     }
 
-    private static void displayDurationAsString(Duration duration) {
-        Stream.of(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES, ChronoUnit.SECONDS)
+    private static String displayDurationAsString(Duration duration) {
+        List<String> formattedDurationParts = Stream.of(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES, ChronoUnit.SECONDS)
                 .map(cu -> formatChronoUnitForDurationPart(duration, cu))
                 .filter(Optional::isPresent)
-                .forEach(System.out::println);
-
-        duration.getUnits().stream().map( cu -> formatChronoUnitForDurationPart(duration, (ChronoUnit) cu)).forEach(System.out::println);
+                .map(Optional::get)
+                .toList();
+        if (formattedDurationParts.size() == 1) {
+            return formattedDurationParts.getFirst();
+        } else if (formattedDurationParts.size() == 2) {
+            return formattedDurationParts.get(0) + " and " + formattedDurationParts.get(1);
+        } else {
+            String first = formattedDurationParts.getFirst() + ", ";
+            String last = " and " + formattedDurationParts.getLast();
+            return first + String.join(", ",formattedDurationParts.subList(1, formattedDurationParts.size() - 1)) + last;
+        }
     }
 
     private static Optional<String> formatChronoUnitForDurationPart(Duration duration, ChronoUnit chronoUnit) {
