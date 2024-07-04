@@ -1,4 +1,4 @@
-package org.example.javageneral;
+package org.example.quizshow.output;
 
 import java.util.ArrayList;
 import java.util.Arrays;
