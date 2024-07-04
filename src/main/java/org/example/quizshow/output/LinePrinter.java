@@ -8,7 +8,7 @@ public class LinePrinter {
 
     private OutputConfig outputConfig = new OutputConfig(
             120,
-            2,
+            1,
             true
     );
 
@@ -16,29 +16,33 @@ public class LinePrinter {
 
         char[] outputChars = new char[config.width()];
         List<ColumnOutput> outputsToProcess = new ArrayList<>(Arrays.asList(outputs));
+
+        int maxLength = outputsToProcess.stream()
+                .map(o -> config.displayColumnBoxes() ? o.outerWidth() : o.innerWidth())
+                .mapToInt(Integer::intValue).sum() +
+                ((outputs.length - 1) * config.columnGap());
+        if( maxLength > config.width()) {
+            throw new IllegalArgumentException("Column width %d exceeds the maximum allowed width %d"
+                    .formatted(maxLength, config.width()));
+        }
+
         List<String> linesForOut = new ArrayList<>();
+        int maxLines = outputsToProcess.stream().mapToInt(o -> o.data().size()).max().orElse(0);
+        System.out.println("maxLines = " + maxLines);
 
-
-
-        final Set<ColumnOutput> toRemove = new HashSet<>();
-        int currentLine = 0;
-        while (toRemove.size() != outputsToProcess.size()) {
+        for (int currentLine = 0; currentLine < maxLines; currentLine++ ) {
             prepareArray(outputChars);
 
             int column = 0;
 
             for (ColumnOutput output : outputsToProcess) {
 
-                boolean stillHasData = output.data().size() > currentLine;
-                if (!stillHasData) {
-                    toRemove.add(output);
-                }
-
                 // left hand side
                 if (config.displayColumnBoxes()) {
                     outputChars[column++] = COLUMN_SIDE;
                 }
 
+                boolean stillHasData = output.data().size() > currentLine;
                 if (stillHasData) {
                     String columnData = output.data().get(currentLine);
                     System.arraycopy(columnData.toCharArray(), 0, outputChars, column, columnData.length());
@@ -50,28 +54,15 @@ public class LinePrinter {
                     outputChars[column++] = COLUMN_SIDE;
                 }
 
-                Arrays.fill(outputChars, column, column + config.columnGap(), ' ');
+                Arrays.fill(outputChars, column, Math.min(config.width(), column + config.columnGap()), ' ');
                 column += config.columnGap();
-
-                System.out.println("Output: " + outputsToProcess.size());
-                System.out.println("toRemove: " + toRemove.size());
-
-//                if (output.data().size() > currentLine) {
-//                } else {
-//                    // reached end of output for that column
-//                    toRemove.add(output);
-//                }
             }
-
-//            outputsToProcess.removeAll(toRemove);
 
             // output those rows
             linesForOut.add(new String(outputChars));
-            currentLine++;
         }
 
         linesForOut.forEach(System.out::println);
-
     }
 
     private void prepareArray(char[] array) {
@@ -91,26 +82,47 @@ public class LinePrinter {
             secret messages \
             """;
 
+        final String MORE_WORDS = """
+            once upon a time there was a rabbit called fluffy bun who jumped over the lazy dog or something like that.
+            don't know what the dog was the called.
+            """;
+
+        List<String> moreWords20 = StringSplitting.split(MORE_WORDS, 15);
         List<String> words50 = StringSplitting.split(WORDS, 50);
+        List<String> words30 = StringSplitting.split(WORDS, 30);
 
         ColumnOutput column1 = new ColumnOutput(
-          0,
-          "Notes",
-          10,
-          12,
-          List.of("once upon", "a time.")
+                0,
+                "Notes",
+                10,
+                12,
+                List.of("once upon", "a time.")
         );
         ColumnOutput column2 = new ColumnOutput(
-          1,
-          "Some more notes",
-          50,
-          52,
-          words50
+                1,
+                "Some more notes",
+                50,
+                52,
+                words50
+        );
+        ColumnOutput column3 = new ColumnOutput(
+                2,
+                "Some more notes",
+                30,
+                32,
+                words30
+        );
+        ColumnOutput column4 = new ColumnOutput(
+                3,
+                "A story",
+                15,
+                17,
+                moreWords20
         );
 
-        OutputConfig outputConfig = new OutputConfig(120, 2, true);
+        OutputConfig outputConfig = new OutputConfig(120, 1, true);
         LinePrinter linePrinter = new LinePrinter();
-        linePrinter.printColumns(outputConfig, column1, column2, column1);
+        linePrinter.printColumns(outputConfig, column1, column2, column4, column3);
     }
 
 }
